@@ -4,16 +4,16 @@
             "name": "Linux",
             "includePath": [
                 "${workspaceFolder}/**",
-                 "${workspaceFolder}/User/FreeRTOS",
-                 "${workspaceFolder}/User/FreeRTOS/include",
-                  "${workspaceFolder}/Libraries",
-                  "${workspaceFolder}/Libraries/CMSIS",
-                  "${workspaceFolder}/User",
-                  "${workspaceFolder}/User/Hardware"
+                "${workspaceFolder}/User/FreeRTOS",
+                "${workspaceFolder}/User/FreeRTOS/include",
+                "${workspaceFolder}/Libraries",
+                "${workspaceFolder}/Libraries/CMSIS",
+                "${workspaceFolder}/User",
+                "${workspaceFolder}/User/Hardware",
+                "${workspaceFolder}/User/FreeRTOS/portable/RVDS/ARM_CM3"
             ],
             "defines": [
                 "USE_STDPERIPH_DRIVER"
-                
             ],
             "compilerPath": "/usr/bin/gcc",
             "cStandard": "c17",
