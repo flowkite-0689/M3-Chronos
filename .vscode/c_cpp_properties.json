@@ -4,12 +4,12 @@
             "name": "Linux",
             "includePath": [
                 "${workspaceFolder}/**",
-                 "${workspaceFolder}/FreeRTOS",
-                 "${workspaceFolder}/FreeRTOS/include",
-                  "${workspaceFolder}/Library",
-                  "${workspaceFolder}/Start",
+                 "${workspaceFolder}/User/FreeRTOS",
+                 "${workspaceFolder}/User/FreeRTOS/include",
+                  "${workspaceFolder}/Libraries",
+                  "${workspaceFolder}/Libraries/CMSIS",
                   "${workspaceFolder}/User",
-                  "${workspaceFolder}/Hardware"
+                  "${workspaceFolder}/User/Hardware"
             ],
             "defines": [
                 "USE_STDPERIPH_DRIVER"
