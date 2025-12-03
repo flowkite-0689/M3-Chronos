@@ -5,6 +5,7 @@
 #include "hardware_def.h"
 #include "Key.h"
 #include "debug.h"
+#include "beep.h"
 
 static TaskHandle_t app_task1_handle = NULL;
 static TaskHandle_t app_task2_handle = NULL;
@@ -19,7 +20,8 @@ int main(void)
   LED1_ON();
 	Key_Init();
 	debug_init();
-printf("1111");
+	Beep_Init();
+  printf("1111");
 	/* 创建app_task1任务 */
 	xTaskCreate((TaskFunction_t)app_task1,			/* 任务入口函数 */
 				(const char *)"app_task1",			/* 任务名字 */
@@ -60,23 +62,27 @@ static void app_task2(void *pvParameters)
 		
 		if (KeyNum == 1)			//按键1按下
 		{
+			BEEP_Buzz(10);
 			printf("key1 被按下\n");
 			LED1_Turn();			//LED1翻转
 		}
 		
 		if (KeyNum == 2)			//按键2按下
 		{
+			BEEP_Buzz(10);
 			printf("key2 被按下\n");
 			LED2_Turn();			//LED2翻转
 		}
 
 		if (KeyNum == 3)			//按键2按下
 		{
+			BEEP_Buzz(10);
 			printf("key3 被按下\n");
 						//LED2翻转
 		}
 		if (KeyNum == 4)			//按键2按下
 		{
+			BEEP_Buzz(10);
 			printf("key4 被按下\n");
 			LED2_Turn();			//LED2翻转
 		}
