@@ -2,7 +2,7 @@
 #include "LED.h"
 #include <FreeRTOS.h>
 #include <task.h>
-#include "OLED.h"
+#include "hardware_def.h"
 static TaskHandle_t app_task1_handle = NULL;
 static TaskHandle_t app_task2_handle = NULL;
 /* 任务1 */
@@ -11,11 +11,10 @@ static void app_task2(void *pvParameters);
 
 int main(void)
 {
-  OLED_Init();	
+ 
 	LED_Init();
   LED1_ON();
-	OLED_ShowString(1, 1, "RxData:");
-	
+
 	/* 创建app_task1任务 */
 	xTaskCreate((TaskFunction_t)app_task1,			/* 任务入口函数 */
 				(const char *)"app_task1",			/* 任务名字 */
@@ -42,7 +41,7 @@ static void app_task1(void *pvParameters)
 	for (;;)
 	{
 
-		LED1_Turn();
+		LED3=!LED3;
 		vTaskDelay(1000);
 	}
 }
