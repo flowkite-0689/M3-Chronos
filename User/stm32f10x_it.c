@@ -2,22 +2,21 @@
   ******************************************************************************
   * @file    Project/STM32F10x_StdPeriph_Template/stm32f10x_it.c 
   * @author  MCD Application Team
-  * @version V3.5.0
-  * @date    08-April-2011
+  * @version V3.6.0
+  * @date    20-September-2021
   * @brief   Main Interrupt Service Routines.
   *          This file provides template for all exceptions handler and 
   *          peripherals interrupt service routine.
   ******************************************************************************
   * @attention
   *
-  * THE PRESENT FIRMWARE WHICH IS FOR GUIDANCE ONLY AIMS AT PROVIDING CUSTOMERS
-  * WITH CODING INFORMATION REGARDING THEIR PRODUCTS IN ORDER FOR THEM TO SAVE
-  * TIME. AS A RESULT, STMICROELECTRONICS SHALL NOT BE HELD LIABLE FOR ANY
-  * DIRECT, INDIRECT OR CONSEQUENTIAL DAMAGES WITH RESPECT TO ANY CLAIMS ARISING
-  * FROM THE CONTENT OF SUCH FIRMWARE AND/OR THE USE MADE BY CUSTOMERS OF THE
-  * CODING INFORMATION CONTAINED HEREIN IN CONNECTION WITH THEIR PRODUCTS.
+  * Copyright (c) 2011 STMicroelectronics.
+  * All rights reserved.
   *
-  * <h2><center>&copy; COPYRIGHT 2011 STMicroelectronics</center></h2>
+  * This software is licensed under terms that can be found in the LICENSE file
+  * in the root directory of this software component.
+  * If no LICENSE file comes with this software, it is provided AS-IS.
+  *
   ******************************************************************************
   */
 
@@ -100,14 +99,14 @@ void UsageFault_Handler(void)
   }
 }
 
-// /**
-//   * @brief  This function handles SVCall exception.
-//   * @param  None
-//   * @retval None
-//   */
-// void SVC_Handler(void)
-// {
-// }
+///**
+//  * @brief  This function handles SVCall exception.
+//  * @param  None
+//  * @retval None
+//  */
+//void SVC_Handler(void)
+//{
+//}
 
 /**
   * @brief  This function handles Debug Monitor exception.
@@ -118,23 +117,14 @@ void DebugMon_Handler(void)
 {
 }
 
-// /**
-//   * @brief  This function handles PendSVC exception.
-//   * @param  None
-//   * @retval None
-//   */
-// void PendSV_Handler(void)
-// {
-// }
-
-// /**
-//   * @brief  This function handles SysTick Handler.
-//   * @param  None
-//   * @retval None
-//   */
-// void SysTick_Handler(void)
-// {
-// }
+///**
+//  * @brief  This function handles PendSVC exception.
+//  * @param  None
+//  * @retval None
+//  */
+//void PendSV_Handler(void)
+//{
+//}
 
 /******************************************************************************/
 /*                 STM32F10x Peripherals Interrupt Handlers                   */
@@ -157,4 +147,3 @@ void DebugMon_Handler(void)
   */ 
 
 
-/******************* (C) COPYRIGHT 2011 STMicroelectronics *****END OF FILE****/

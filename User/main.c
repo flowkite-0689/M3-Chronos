@@ -4,10 +4,11 @@
 #include <task.h>
 #include "hardware_def.h"
 #include "Key.h"
+#include "debug.h"
 
 static TaskHandle_t app_task1_handle = NULL;
 static TaskHandle_t app_task2_handle = NULL;
-/* ä»»åŠ¡1 */
+/* ÈÎÎñ1 */
 static void app_task1(void *pvParameters);
 static void app_task2(void *pvParameters);
 
@@ -17,24 +18,25 @@ int main(void)
 	LED_Init();
   LED1_ON();
 	Key_Init();
-
-	/* åˆ›å»ºapp_task1ä»»åŠ¡ */
-	xTaskCreate((TaskFunction_t)app_task1,			/* ä»»åŠ¡å…¥å£å‡½æ•° */
-				(const char *)"app_task1",			/* ä»»åŠ¡åå­— */
-				(uint16_t)512,						/* ä»»åŠ¡æ ˆå¤§å° */
-				(void *)NULL,						/* ä»»åŠ¡å…¥å£å‡½æ•°å‚æ•° */
-				(UBaseType_t)3,						/* ä»»åŠ¡çš„ä¼˜å…ˆçº§ */
-				(TaskHandle_t *)&app_task1_handle); /* ä»»åŠ¡æ§åˆ¶å—æŒ‡é’ˆ */
-	/* åˆ›å»ºapp_task1ä»»åŠ¡ */
-	xTaskCreate((TaskFunction_t)app_task2,			/* ä»»åŠ¡å…¥å£å‡½æ•° */
-				(const char *)"app_task2",			/* ä»»åŠ¡åå­— */
-				(uint16_t)512,						/* ä»»åŠ¡æ ˆå¤§å° */
-				(void *)NULL,						/* ä»»åŠ¡å…¥å£å‡½æ•°å‚æ•° */
-				(UBaseType_t)3,						/* ä»»åŠ¡çš„ä¼˜å…ˆçº§ */
-				(TaskHandle_t *)&app_task2_handle); /* ä»»åŠ¡æ§åˆ¶å—æŒ‡é’ˆ */
+	debug_init();
+printf("1111");
+	/* ´´½¨app_task1ÈÎÎñ */
+	xTaskCreate((TaskFunction_t)app_task1,			/* ÈÎÎñÈë¿Úº¯Êı */
+				(const char *)"app_task1",			/* ÈÎÎñÃû×Ö */
+				(uint16_t)512,						/* ÈÎÎñÕ»´óĞ¡ */
+				(void *)NULL,						/* ÈÎÎñÈë¿Úº¯Êı²ÎÊı */
+				(UBaseType_t)3,						/* ÈÎÎñµÄÓÅÏÈ¼¶ */
+				(TaskHandle_t *)&app_task1_handle); /* ÈÎÎñ¿ØÖÆ¿éÖ¸Õë */
+	/* ´´½¨app_task1ÈÎÎñ */
+	xTaskCreate((TaskFunction_t)app_task2,			/* ÈÎÎñÈë¿Úº¯Êı */
+				(const char *)"app_task2",			/* ÈÎÎñÃû×Ö */
+				(uint16_t)512,						/* ÈÎÎñÕ»´óĞ¡ */
+				(void *)NULL,						/* ÈÎÎñÈë¿Úº¯Êı²ÎÊı */
+				(UBaseType_t)3,						/* ÈÎÎñµÄÓÅÏÈ¼¶ */
+				(TaskHandle_t *)&app_task2_handle); /* ÈÎÎñ¿ØÖÆ¿éÖ¸Õë */
 				
 // LED1_OFF();
-	/* å¼€å¯ä»»åŠ¡è°ƒåº¦ */
+	/* ¿ªÆôÈÎÎñµ÷¶È */
 	vTaskStartScheduler();
 	LED2_ON();
 }
@@ -54,17 +56,50 @@ static void app_task2(void *pvParameters)
 	for (;;)
 	{
     
-		KeyNum = Key_GetNum();		//è·å–æŒ‰é”®é”®ç 
+		KeyNum = Key_GetNum();		//»ñÈ¡°´¼ü¼üÂë
 		
-		if (KeyNum == 1)			//æŒ‰é”®1æŒ‰ä¸‹
+		if (KeyNum == 1)			//°´¼ü1°´ÏÂ
 		{
-			LED1_Turn();			//LED1ç¿»è½¬
+			printf("key1 ±»°´ÏÂ\n");
+			LED1_Turn();			//LED1·­×ª
 		}
 		
-		if (KeyNum == 2)			//æŒ‰é”®2æŒ‰ä¸‹
+		if (KeyNum == 2)			//°´¼ü2°´ÏÂ
 		{
-			LED2_Turn();			//LED2ç¿»è½¬
+			printf("key2 ±»°´ÏÂ\n");
+			LED2_Turn();			//LED2·­×ª
 		}
+
+		if (KeyNum == 3)			//°´¼ü2°´ÏÂ
+		{
+			printf("key3 ±»°´ÏÂ\n");
+						//LED2·­×ª
+		}
+		if (KeyNum == 4)			//°´¼ü2°´ÏÂ
+		{
+			printf("key4 ±»°´ÏÂ\n");
+			LED2_Turn();			//LED2·­×ª
+		}
+		
 	}
 }
 
+void vApplicationIdleHook( void )
+{
+}
+void vApplicationStackOverflowHook( TaskHandle_t pxTask, char *pcTaskName )
+{
+    ( void ) pcTaskName;
+    ( void ) pxTask;
+    taskDISABLE_INTERRUPTS();
+    for( ;; );
+}
+void vApplicationTickHook( void )
+{
+   
+}
+void vApplicationMallocFailedHook( void )
+{
+    taskDISABLE_INTERRUPTS();
+    for( ;; );
+}
