@@ -3,6 +3,8 @@
 #include <FreeRTOS.h>
 #include <task.h>
 #include "hardware_def.h"
+#include "Key.h"
+
 static TaskHandle_t app_task1_handle = NULL;
 static TaskHandle_t app_task2_handle = NULL;
 /* 任务1 */
@@ -14,6 +16,7 @@ int main(void)
  
 	LED_Init();
   LED1_ON();
+	Key_Init();
 
 	/* 创建app_task1任务 */
 	xTaskCreate((TaskFunction_t)app_task1,			/* 任务入口函数 */
@@ -41,17 +44,27 @@ static void app_task1(void *pvParameters)
 	for (;;)
 	{
 
-		LED3=!LED3;
+		// LED3=!LED3;
 		vTaskDelay(1000);
 	}
 }
 static void app_task2(void *pvParameters)
 {
+	int KeyNum;
 	for (;;)
 	{
     
-		LED2_Turn();
-		vTaskDelay(1000);
+		KeyNum = Key_GetNum();		//获取按键键码
+		
+		if (KeyNum == 1)			//按键1按下
+		{
+			LED1_Turn();			//LED1翻转
+		}
+		
+		if (KeyNum == 2)			//按键2按下
+		{
+			LED2_Turn();			//LED2翻转
+		}
 	}
 }
 
