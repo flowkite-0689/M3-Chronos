@@ -11,7 +11,8 @@
                 "${workspaceFolder}/User",
                 "${workspaceFolder}/User/Hardware",
                 "${workspaceFolder}/User/FreeRTOS/portable/RVDS/ARM_CM3",
-                "${workspaceFolder}/User/Hardware/OLED"
+                "${workspaceFolder}/User/Hardware/OLED",
+                "${workspaceFolder}/User/ui/Inc"
             ],
             "defines": [
                 "USE_STDPERIPH_DRIVER"
