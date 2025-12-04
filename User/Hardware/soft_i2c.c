@@ -32,22 +32,21 @@ void Soft_I2C_Mode(GPIOMode_TypeDef GPIO_Mode)
 // 起始信号
 void Soft_I2C_Start(void)
 {
-	printf("Soft_I2C_Start - >\n");
+	// printf("Soft_I2C_Start - >\n");
 
 
 	SDA_H;
 	SCL_H;
-	printf("delay start->");
+	// printf("delay start->");
 
 	I2C_DELAY;
-	printf("end");
-	printf("SDA_H;\nSCL_H;\nI2C_DELAY;\n");
+	
 
 	SDA_L;
 	I2C_DELAY;
 	
 	SCL_L;
-	printf("<-Soft_I2C_Start\n");
+	// printf("<-Soft_I2C_Start\n");
 }
 
 
@@ -123,7 +122,7 @@ uint8_t Soft_I2C_Wait_Ack(void)
 void Soft_I2C_Send_Byte(uint8_t data)
 {
 
-	printf("Soft_I2C_Send_Byte :%d\n",data);
+	
 	for (int i = 0; i < 8; i++)
 	{
 		// 先发高位
@@ -181,10 +180,10 @@ uint8_t Soft_I2C_Read_Byte(void)
   */
 uint8_t Soft_I2C_Write_Byte(uint8_t dev_addr, uint8_t reg_addr, uint8_t data)
 {
-	printf("Soft_I2C_Write_Byte start->\n");
+	// printf("Soft_I2C_Write_Byte start->\n");
 	Soft_I2C_Start();
 	Soft_I2C_Send_Byte(dev_addr << 1);	// 发送从机地址（写）
-	printf("Soft_I2C_Send_Byte : %d",dev_addr);
+	// printf("Soft_I2C_Send_Byte : %d",dev_addr);
 	if (Soft_I2C_Wait_Ack())
 	{
 		Soft_I2C_Stop();
