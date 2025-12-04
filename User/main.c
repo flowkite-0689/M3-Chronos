@@ -8,6 +8,7 @@
 #include "beep.h"
 #include "oled_print.h"
 #include "rtc_date.h"
+#include "dht11.h"
 
 static TaskHandle_t app_task1_handle = NULL;
 static TaskHandle_t app_task2_handle = NULL;
@@ -42,6 +43,37 @@ int main(void)
 	OLED_Clear();
 	OLED_Printf_Line(3,"sys OK...");
 	OLED_Refresh();
+
+	DHT11_Data_TypeDef dhtdata;
+	  DHT11_Init();
+int result = 1;
+	for (;;)
+	{
+		// MyRTC_ReadTime();	
+    // OLED_Printf_Line_32(1,"%02d:%02d:%02d",
+		// 	RTC_data.hours,RTC_data.minutes,RTC_data.seconds);
+    //  printf("%02d:%02d:%02d",MyRTC_Time[3],MyRTC_Time[4],MyRTC_Time[5]);
+		// OLED_Printf_Line(0,"%d.%d.%d %s",RTC_data.year,RTC_data.mon,RTC_data.day,RTC_data.weekday);
+ result = Read_DHT11(&dhtdata);
+    if (result == 0)
+    {
+      OLED_Clear_Line(3);
+      OLED_Printf_Line(0, "Temperature:%d.%dC ",
+                       dhtdata.temp_int, dhtdata.temp_deci);
+      OLED_Printf_Line(2, "Humidity:  %d.%d%%",
+                       dhtdata.humi_int, dhtdata.humi_deci);
+                       // 横向温度计（支持小数：25.5°C → 255）
+    
+
+    
+    }
+		printf("Temperature:%d.%dC ",
+                       dhtdata.temp_int, dhtdata.temp_deci);
+		OLED_Refresh_Dirty();
+// printf("1");
+		// LED3=!LED3;
+		Delay_ms(1000);
+	}
 	/* 创建app_task1任务 */
 	xTaskCreate((TaskFunction_t)app_task1,			/* 任务入口函数 */
 				(const char *)"app_task1",			/* 任务名字 */
@@ -65,19 +97,7 @@ int main(void)
 
 static void app_task1(void *pvParameters)
 {
-	for (;;)
-	{
-		MyRTC_ReadTime();	
-    OLED_Printf_Line_32(1,"%02d:%02d:%02d",
-			RTC_data.hours,RTC_data.minutes,RTC_data.seconds);
-     printf("%02d:%02d:%02d",MyRTC_Time[3],MyRTC_Time[4],MyRTC_Time[5]);
-		OLED_Printf_Line(0,"%d.%d.%d %s",RTC_data.year,RTC_data.mon,RTC_data.day,RTC_data.weekday);
-
-		OLED_Refresh_Dirty();
-
-		// LED3=!LED3;
-		vTaskDelay(50);
-	}
+  
 }
 static void app_task2(void *pvParameters)
 {

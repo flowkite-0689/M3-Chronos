@@ -76,3 +76,7 @@ void Delay_s(uint32_t xs)
 		Delay_ms(1000);
 	}
 } 
+void delay_us_no_irq(uint32_t us)
+{
+  TIM2_Delay_us(us);
+}
