@@ -16,19 +16,29 @@ static void app_task2(void *pvParameters);
 
 int main(void)
 {
-	
-	 TIM2_Delay_Init();
+	//系统开始初始化
+	TIM2_Delay_Init();
 	debug_init();
 	OLED_Init();
-
+  OLED_Printf_Line(0,"init");
+	OLED_ShowPicture(32, 0, 64, 64, gImage_bg, 1);
+	OLED_Refresh();
 	LED_Init();
   LED1_ON();
 	Key_Init();
 	
 	Beep_Init();
-  printf("1111");
-	OLED_Printf_Line(0,"hello");
-	OLED_Refresh_Dirty();
+
+
+
+
+
+
+	//系统初始化成功
+  printf("init OK\n");
+	OLED_Clear();
+	OLED_Printf_Line(3,"sys OK...");
+	OLED_Refresh();
 	/* 创建app_task1任务 */
 	xTaskCreate((TaskFunction_t)app_task1,			/* 任务入口函数 */
 				(const char *)"app_task1",			/* 任务名字 */

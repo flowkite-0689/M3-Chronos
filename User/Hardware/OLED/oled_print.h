@@ -6,7 +6,7 @@
 #include <stdio.h>
 #include <stdarg.h>
 #include <string.h>
-
+#include "logo.h"
 // OLED显示区域定义
 #define OLED_LINE_HEIGHT 16  // 每行高度（像素）
 #define OLED_MAX_LINES   4   // 最大行数（128x64像素屏幕）
