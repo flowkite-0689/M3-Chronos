@@ -28,7 +28,7 @@ int main(void)
 	LED_Init();
   LED1_ON();
 	Key_Init();
-	MyRTC_Init();	
+	
 	Beep_Init();
 	
 	// RTC_SetTime_Manual(15,22,0);
@@ -44,36 +44,7 @@ int main(void)
 	OLED_Printf_Line(3,"sys OK...");
 	OLED_Refresh();
 
-	DHT11_Data_TypeDef dhtdata;
-	  DHT11_Init();
-int result = 1;
-	for (;;)
-	{
-		// MyRTC_ReadTime();	
-    // OLED_Printf_Line_32(1,"%02d:%02d:%02d",
-		// 	RTC_data.hours,RTC_data.minutes,RTC_data.seconds);
-    //  printf("%02d:%02d:%02d",MyRTC_Time[3],MyRTC_Time[4],MyRTC_Time[5]);
-		// OLED_Printf_Line(0,"%d.%d.%d %s",RTC_data.year,RTC_data.mon,RTC_data.day,RTC_data.weekday);
- result = Read_DHT11(&dhtdata);
-    if (result == 0)
-    {
-      OLED_Clear_Line(3);
-      OLED_Printf_Line(0, "Temperature:%d.%dC ",
-                       dhtdata.temp_int, dhtdata.temp_deci);
-      OLED_Printf_Line(2, "Humidity:  %d.%d%%",
-                       dhtdata.humi_int, dhtdata.humi_deci);
-                       // 横向温度计（支持小数：25.5°C → 255）
-    
 
-    
-    }
-		printf("Temperature:%d.%dC ",
-                       dhtdata.temp_int, dhtdata.temp_deci);
-		OLED_Refresh_Dirty();
-// printf("1");
-		// LED3=!LED3;
-		Delay_ms(1000);
-	}
 	/* 创建app_task1任务 */
 	xTaskCreate((TaskFunction_t)app_task1,			/* 任务入口函数 */
 				(const char *)"app_task1",			/* 任务名字 */
@@ -98,9 +69,40 @@ int result = 1;
 static void app_task1(void *pvParameters)
 {
   
+		DHT11_Data_TypeDef dhtdata;
+	  DHT11_Init();
+int result = 1;
+	for (;;)
+	{
+		// MyRTC_ReadTime();	
+    // OLED_Printf_Line_32(1,"%02d:%02d:%02d",
+		// 	RTC_data.hours,RTC_data.minutes,RTC_data.seconds);
+    //  printf("%02d:%02d:%02d",MyRTC_Time[3],MyRTC_Time[4],MyRTC_Time[5]);
+		// OLED_Printf_Line(0,"%d.%d.%d %s",RTC_data.year,RTC_data.mon,RTC_data.day,RTC_data.weekday);
+ result = Read_DHT11(&dhtdata);
+    if (result == 0)
+    {
+      OLED_Clear_Line(3);
+      OLED_Printf_Line(0, "Temperature:%d.%dC ",
+                       dhtdata.temp_int, dhtdata.temp_deci);
+      OLED_Printf_Line(2, "Humidity:  %d.%d%%",
+                       dhtdata.humi_int, dhtdata.humi_deci);
+                       // 横向温度计（支持小数：25.5°C → 255）
+    
+
+    
+    }
+		// printf("Temperature:%d.%dC ",
+    //                    dhtdata.temp_int, dhtdata.temp_deci);
+		OLED_Refresh_Dirty();
+// printf("1");
+		// LED3=!LED3;
+		Delay_ms(1000);
+	}	
 }
 static void app_task2(void *pvParameters)
 {
+	// MyRTC_Init();
 	int KeyNum;
 	for (;;)
 	{
@@ -110,28 +112,21 @@ static void app_task2(void *pvParameters)
 		if (KeyNum == 1)			//按键1按下
 		{
 			BEEP_Buzz(1);
-			printf("key1 被按下\n");
-			LED1_Turn();			//LED1翻转
 		}
 		
 		if (KeyNum == 2)			//按键2按下
 		{
 			BEEP_Buzz(1);
-			printf("key2 被按下\n");
-			LED2_Turn();			//LED2翻转
 		}
 
 		if (KeyNum == 3)			//按键2按下
 		{
 			BEEP_Buzz(1);
-			printf("key3 被按下\n");
-						//LED2翻转
 		}
 		if (KeyNum == 4)			//按键2按下
 		{
 			BEEP_Buzz(1);
-			printf("key4 被按下\n");
-			LED2_Turn();			//LED2翻转
+			//LED2翻转
 		}
 		vTaskDelay(60);
 	}
