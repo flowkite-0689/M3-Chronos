@@ -69,27 +69,27 @@ static void app_task2(void *pvParameters)
 		
 		if (KeyNum == 1)			//按键1按下
 		{
-			BEEP_Buzz(10);
+			BEEP_Buzz(1);
 			printf("key1 被按下\n");
 			LED1_Turn();			//LED1翻转
 		}
 		
 		if (KeyNum == 2)			//按键2按下
 		{
-			BEEP_Buzz(10);
+			BEEP_Buzz(1);
 			printf("key2 被按下\n");
 			LED2_Turn();			//LED2翻转
 		}
 
 		if (KeyNum == 3)			//按键2按下
 		{
-			BEEP_Buzz(10);
+			BEEP_Buzz(1);
 			printf("key3 被按下\n");
 						//LED2翻转
 		}
 		if (KeyNum == 4)			//按键2按下
 		{
-			BEEP_Buzz(10);
+			BEEP_Buzz(1);
 			printf("key4 被按下\n");
 			LED2_Turn();			//LED2翻转
 		}
