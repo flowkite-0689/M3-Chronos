@@ -10,7 +10,8 @@
                 "${workspaceFolder}/Libraries/CMSIS",
                 "${workspaceFolder}/User",
                 "${workspaceFolder}/User/Hardware",
-                "${workspaceFolder}/User/FreeRTOS/portable/RVDS/ARM_CM3"
+                "${workspaceFolder}/User/FreeRTOS/portable/RVDS/ARM_CM3",
+                "${workspaceFolder}/User/Hardware/OLED"
             ],
             "defines": [
                 "USE_STDPERIPH_DRIVER"

@@ -6,6 +6,7 @@
 #include "Key.h"
 #include "debug.h"
 #include "beep.h"
+#include "oled_print.h"
 
 static TaskHandle_t app_task1_handle = NULL;
 static TaskHandle_t app_task2_handle = NULL;
@@ -15,13 +16,19 @@ static void app_task2(void *pvParameters);
 
 int main(void)
 {
- 
+	
+	 TIM2_Delay_Init();
+	debug_init();
+	OLED_Init();
+
 	LED_Init();
   LED1_ON();
 	Key_Init();
-	debug_init();
+	
 	Beep_Init();
   printf("1111");
+	OLED_Printf_Line(0,"hello");
+	OLED_Refresh_Dirty();
 	/* 创建app_task1任务 */
 	xTaskCreate((TaskFunction_t)app_task1,			/* 任务入口函数 */
 				(const char *)"app_task1",			/* 任务名字 */
