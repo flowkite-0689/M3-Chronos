@@ -522,76 +522,76 @@ void OLED_Init(void)
 	OLED_I2C_Init();
   printf("OLED start initialization\n");
 	
-	printf("Step 1: Turn off OLED panel\n");
+	// printf("Step 1: Turn off OLED panel\n");
 	OLED_WR_Byte(0xAE, OLED_CMD); //--turn off oled panel
 	
-	printf("Step 2: Set low column address\n");
+	// printf("Step 2: Set low column address\n");
 	OLED_WR_Byte(0x00, OLED_CMD); //---set low column address
 	
-	printf("Step 3: Set high column address\n");
+	// printf("Step 3: Set high column address\n");
 	OLED_WR_Byte(0x10, OLED_CMD); //---set high column address
 	
-	printf("Step 4: Set start line address\n");
+	// printf("Step 4: Set start line address\n");
 	OLED_WR_Byte(0x40, OLED_CMD); //--set start line address  Set Mapping RAM Display Start Line (0x00~0x3F)
 	
-	printf("Step 5: Set contrast control register\n");
+	// printf("Step 5: Set contrast control register\n");
 	OLED_WR_Byte(0x81, OLED_CMD); //--set contrast control register
-	printf("Step 6: Set SEG output current brightness\n");
+	// printf("Step 6: Set SEG output current brightness\n");
 	OLED_WR_Byte(0xCF, OLED_CMD); // Set SEG Output Current Brightness
 	
-	printf("Step 7: Set SEG/Column mapping (0xa1 normal)\n");
+	// printf("Step 7: Set SEG/Column mapping (0xa1 normal)\n");
 	OLED_WR_Byte(0xA1, OLED_CMD); //--Set SEG/Column Mapping     0xa0左右反置 0xa1正常
 	
-	printf("Step 8: Set COM/Row scan direction (0xc8 normal)\n");
+	// printf("Step 8: Set COM/Row scan direction (0xc8 normal)\n");
 	OLED_WR_Byte(0xC8, OLED_CMD); // Set COM/Row Scan Direction   0xc0上下反置 0xc8正常
 	
-	printf("Step 9: Set normal display mode\n");
+	// printf("Step 9: Set normal display mode\n");
 	OLED_WR_Byte(0xA6, OLED_CMD); //--set normal display
 	
-	printf("Step 10: Set multiplex ratio (1 to 64)\n");
+	// printf("Step 10: Set multiplex ratio (1 to 64)\n");
 	OLED_WR_Byte(0xA8, OLED_CMD); //--set multiplex ratio(1 to 64)
-	printf("Step 11: Set 1/64 duty\n");
+	// printf("Step 11: Set 1/64 duty\n");
 	OLED_WR_Byte(0x3f, OLED_CMD); //--1/64 duty
 	
-	printf("Step 12: Set display offset\n");
+	// printf("Step 12: Set display offset\n");
 	OLED_WR_Byte(0xD3, OLED_CMD); //-set display offset	Shift Mapping RAM Counter (0x00~0x3F)
-	printf("Step 13: No offset\n");
+	// printf("Step 13: No offset\n");
 	OLED_WR_Byte(0x00, OLED_CMD); //-not offset
 	
-	printf("Step 14: Set display clock divide ratio/oscillator frequency\n");
+	// printf("Step 14: Set display clock divide ratio/oscillator frequency\n");
 	OLED_WR_Byte(0xd5, OLED_CMD); //--set display clock divide ratio/oscillator frequency
-	printf("Step 15: Set divide ratio, clock as 100 frames/sec\n");
+	// printf("Step 15: Set divide ratio, clock as 100 frames/sec\n");
 	OLED_WR_Byte(0x80, OLED_CMD); //--set divide ratio, Set Clock as 100 Frames/Sec
 	
-	printf("Step 16: Set pre-charge period\n");
+	// printf("Step 16: Set pre-charge period\n");
 	OLED_WR_Byte(0xD9, OLED_CMD); //--set pre-charge period
-	printf("Step 17: Set pre-charge as 15 clocks & discharge as 1 clock\n");
+	// printf("Step 17: Set pre-charge as 15 clocks & discharge as 1 clock\n");
 	OLED_WR_Byte(0xF1, OLED_CMD); // Set Pre-Charge as 15 Clocks & Discharge as 1 Clock
 	
-	printf("Step 18: Set COM pins hardware configuration\n");
+	// printf("Step 18: Set COM pins hardware configuration\n");
 	OLED_WR_Byte(0xDA, OLED_CMD); //--set com pins hardware configuration
-	printf("Step 19: COM pins configuration value 0x12\n");
+	// printf("Step 19: COM pins configuration value 0x12\n");
 	OLED_WR_Byte(0x12, OLED_CMD);
 	
-	printf("Step 20: Set VCOMH\n");
+	// printf("Step 20: Set VCOMH\n");
 	OLED_WR_Byte(0xDB, OLED_CMD); //--set vcomh
-	printf("Step 21: Set VCOM deselect level\n");
+	// printf("Step 21: Set VCOM deselect level\n");
 	OLED_WR_Byte(0x30, OLED_CMD); // Set VCOM Deselect Level
 	
-	printf("Step 22: Set page addressing mode\n");
+	// printf("Step 22: Set page addressing mode\n");
 	OLED_WR_Byte(0x20, OLED_CMD); //-Set Page Addressing Mode (0x00/0x01/0x02)
-	printf("Step 23: Page addressing mode value 0x02\n");
+	// printf("Step 23: Page addressing mode value 0x02\n");
 	OLED_WR_Byte(0x02, OLED_CMD); //
 	
-	printf("Step 24: Set charge pump enable/disable\n");
+	// printf("Step 24: Set charge pump enable/disable\n");
 	OLED_WR_Byte(0x8D, OLED_CMD); //--set Charge Pump enable/disable
-	printf("Step 25: Enable charge pump\n");
+	// printf("Step 25: Enable charge pump\n");
 	OLED_WR_Byte(0x14, OLED_CMD); //--set(0x10) disable
 	
-	printf("Step 26: Clear screen\n");
+	// printf("Step 26: Clear screen\n");
 	OLED_Clear();
 	
-	printf("Step 27: Turn on OLED display\n");
+	// printf("Step 27: Turn on OLED display\n");
 	OLED_WR_Byte(0xAF, OLED_CMD);
 	
 	printf("OLED initialization complete\n");

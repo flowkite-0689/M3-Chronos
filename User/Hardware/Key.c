@@ -31,33 +31,33 @@ uint8_t Key_GetNum(void)
 	
 	if (KEY1 == 0)			//读PB1输入寄存器的状态，如果为0，则代表按键1按下
 	{
-		Delay_ms(20);											//延时消抖
+		vTaskDelay(20);											//延时消抖
 		while (KEY1 == 0);	//等待按键松手
-		Delay_ms(20);											//延时消抖
+		vTaskDelay(20);											//延时消抖
 		KeyNum = 1;												//置键码为1
 	}
 	
 	if (KEY2 == 0)			//读PB11输入寄存器的状态，如果为0，则代表按键2按下
 	{
-		Delay_ms(20);											//延时消抖
+		vTaskDelay(20);											//延时消抖
 		while (KEY2== 0);	//等待按键松手
-		Delay_ms(20);											//延时消抖
+		vTaskDelay(20);											//延时消抖
 		KeyNum = 2;												//置键码为2
 	}
 
 	if (KEY3 == 0)			//读PB11输入寄存器的状态，如果为0，则代表按键2按下
 	{
-		Delay_ms(20);											//延时消抖
+		vTaskDelay(20);											//延时消抖
 		while (KEY3== 0);	//等待按键松手
-		Delay_ms(20);											//延时消抖
+		vTaskDelay(20);											//延时消抖
 		KeyNum = 3;												//置键码为2
 	}
 
 	if (KEY4 == 0)			//读PB11输入寄存器的状态，如果为0，则代表按键2按下
 	{
-		Delay_ms(20);											//延时消抖
+		vTaskDelay(20);											//延时消抖
 		while (KEY4== 0);	//等待按键松手
-		Delay_ms(20);											//延时消抖
+		vTaskDelay(20);											//延时消抖
 		KeyNum = 4;												//置键码为2
 	}
 	

@@ -7,6 +7,7 @@
 #include "debug.h"
 #include "beep.h"
 #include "oled_print.h"
+#include "rtc_date.h"
 
 static TaskHandle_t app_task1_handle = NULL;
 static TaskHandle_t app_task2_handle = NULL;
@@ -26,9 +27,11 @@ int main(void)
 	LED_Init();
   LED1_ON();
 	Key_Init();
-	
+	MyRTC_Init();	
 	Beep_Init();
-
+	
+	// RTC_SetTime_Manual(15,22,0);
+  
 
 
 
@@ -51,7 +54,7 @@ int main(void)
 				(const char *)"app_task2",			/* 任务名字 */
 				(uint16_t)512,						/* 任务栈大小 */
 				(void *)NULL,						/* 任务入口函数参数 */
-				(UBaseType_t)3,						/* 任务的优先级 */
+				(UBaseType_t)4,						/* 任务的优先级 */
 				(TaskHandle_t *)&app_task2_handle); /* 任务控制块指针 */
 				
 // LED1_OFF();
@@ -64,9 +67,16 @@ static void app_task1(void *pvParameters)
 {
 	for (;;)
 	{
+		MyRTC_ReadTime();	
+    OLED_Printf_Line_32(1,"%02d:%02d:%02d",
+			RTC_data.hours,RTC_data.minutes,RTC_data.seconds);
+     printf("%02d:%02d:%02d",MyRTC_Time[3],MyRTC_Time[4],MyRTC_Time[5]);
+		OLED_Printf_Line(0,"%d.%d.%d %s",RTC_data.year,RTC_data.mon,RTC_data.day,RTC_data.weekday);
+
+		OLED_Refresh_Dirty();
 
 		// LED3=!LED3;
-		vTaskDelay(1000);
+		vTaskDelay(50);
 	}
 }
 static void app_task2(void *pvParameters)
@@ -103,7 +113,7 @@ static void app_task2(void *pvParameters)
 			printf("key4 被按下\n");
 			LED2_Turn();			//LED2翻转
 		}
-		
+		vTaskDelay(60);
 	}
 }
 
