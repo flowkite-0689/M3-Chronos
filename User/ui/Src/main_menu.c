@@ -68,6 +68,7 @@ menu_item_t* main_menu_init(void)
             
             // 添加到主菜单
             menu_add_child(main_menu, menu_item);
+            
         }
     }
     

@@ -280,7 +280,7 @@ menu_event_t menu_key_to_event(uint8_t key)
     menu_event_t event;
     memset(&event, 0, sizeof(menu_event_t));
     event.timestamp = xTaskGetTickCount();
-    
+    printf("key press - > %d",key);
     switch (key) {
         case 1:
             event.type = MENU_EVENT_KEY_UP;
@@ -451,6 +451,7 @@ int8_t menu_enter(menu_item_t *menu)
 
 int8_t menu_back_to_parent(void)
 {
+    printf("menu_back_to_parent\n");
     if (g_menu_sys.current_menu == NULL || g_menu_sys.current_menu->parent == NULL) {
         return -1;
     }
@@ -465,6 +466,15 @@ int8_t menu_back_to_parent(void)
     // 返回父菜单
     g_menu_sys.current_menu = parent;
     g_menu_sys.need_refresh = 1;
+    
+    // 重置分页信息
+    g_menu_sys.current_page = 0;
+    menu_update_page_info(parent);
+    
+    // 调用父菜单的进入回调
+    if (parent->on_enter) {
+        parent->on_enter(parent);
+    }
     
     return 0;
 }
