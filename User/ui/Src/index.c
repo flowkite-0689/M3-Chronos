@@ -161,7 +161,7 @@ static void index_display_time_info(void)
 {
     // 显示日期和星期：第0行
     OLED_Printf_Line(0, "%02d/%02d/%02d %s",
-                     g_index_state.year % 100,  // 只显示年份后两位
+                     g_index_state.year ,  
                      g_index_state.month,
                      g_index_state.day,
                      g_index_state.weekday);
