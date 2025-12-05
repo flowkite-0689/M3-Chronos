@@ -359,7 +359,7 @@ int8_t menu_handle_horizontal_key(menu_item_t *menu, uint8_t key_event)
             break;
             
         case MENU_EVENT_KEY_SELECT:
-            // 返回选中项索引（兼容原有行为）
+           menu_back_to_parent();
             break;
             
         case MENU_EVENT_KEY_ENTER:
@@ -427,12 +427,14 @@ int8_t menu_enter(menu_item_t *menu)
         return -1;
     }
     
+    
     // 调用退出回调
     if (g_menu_sys.current_menu && g_menu_sys.current_menu->on_exit) {
         g_menu_sys.current_menu->on_exit(g_menu_sys.current_menu);
     }
     
     // 设置新菜单
+  
     g_menu_sys.current_menu = menu;
     g_menu_sys.menu_active = 1;
     g_menu_sys.need_refresh = 1;
@@ -445,13 +447,14 @@ int8_t menu_enter(menu_item_t *menu)
     if (menu->on_enter) {
         menu->on_enter(menu);
     }
-    
+    printf("parent : %s ,\n current : %s \n",g_menu_sys.current_menu->parent->name,g_menu_sys.current_menu->name);
     return 0;
 }
 
 int8_t menu_back_to_parent(void)
 {
     printf("menu_back_to_parent\n");
+    printf("parent : %s ,\n current : %s \n",g_menu_sys.current_menu->parent->name,g_menu_sys.current_menu->name);
     if (g_menu_sys.current_menu == NULL || g_menu_sys.current_menu->parent == NULL) {
         return -1;
     }
@@ -525,6 +528,9 @@ int8_t menu_enter_selected(void)
     
     // 如果有子菜单，进入子菜单
     if (selected->child_count > 0) {
+        // 设置子菜单的父菜单为当前菜单
+        selected->parent = g_menu_sys.current_menu;
+        printf("menu_enter_selected\nparent : %s ,\n current : %s \n",selected->parent->name,selected->name);
         return menu_enter(selected);
     } else {
         // 没有子菜单，调用进入回调并返回当前索引（兼容原有行为）

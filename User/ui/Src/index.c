@@ -154,10 +154,8 @@ void index_refresh_display(void)
 void index_on_enter(menu_item_t* item)
 {
     printf("Enter index page\r\n");
+    OLED_Clear();
     g_index_state.need_refresh = 1;
-    
-    // 重新初始化RTC
-    MyRTC_Init();
 }
 
 void index_on_exit(menu_item_t* item)
