@@ -87,35 +87,3 @@ void main_menu_on_exit(menu_item_t* item)
     printf("Exit main menu\r\n");
     // 主菜单退出时的清理操作
 }
-
-void main_menu_key_handler(menu_item_t* item, uint8_t key_event)
-{
-    // 主菜单的按键处理
-    switch (key_event) {
-        case MENU_EVENT_KEY_UP:
-            // 向左导航
-            printf("Main menu: Navigate Left\r\n");
-            break;
-            
-        case MENU_EVENT_KEY_DOWN:
-            // 向右导航
-            printf("Main menu: Navigate Right\r\n");
-            break;
-            
-        case MENU_EVENT_KEY_ENTER:
-            // 进入选中功能
-            printf("Main menu: Enter selected function: %s\r\n", 
-                   item->children[item->selected_child].name);
-            // 注意：统一框架会自动处理子菜单进入
-            break;
-            
-        case MENU_EVENT_KEY_SELECT:
-            // 返回上一级（回到index页面）
-            printf("Main menu: Back to index\r\n");
-            menu_back_to_parent();
-            break;
-            
-        default:
-            break;
-    }
-}
