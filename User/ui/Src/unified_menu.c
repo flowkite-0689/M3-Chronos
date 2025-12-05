@@ -280,7 +280,7 @@ menu_event_t menu_key_to_event(uint8_t key)
     menu_event_t event;
     memset(&event, 0, sizeof(menu_event_t));
     event.timestamp = xTaskGetTickCount();
-    printf("key press - > %d",key);
+    printf("key press - > %d",key-1);
     switch (key) {
         case 1:
             event.type = MENU_EVENT_KEY_UP;

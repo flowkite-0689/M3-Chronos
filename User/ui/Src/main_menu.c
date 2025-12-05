@@ -64,7 +64,7 @@ menu_item_t* main_menu_init(void)
                                    main_menu_on_enter,  // 进入回调
                                    main_menu_on_exit,   // 退出回调
                                    NULL,               // 选中回调（不需要特殊处理）
-                                   main_menu_key_handler); // 按键处理
+                                   NULL); // 按键处理
             
             // 添加到主菜单
             menu_add_child(main_menu, menu_item);
