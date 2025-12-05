@@ -7,6 +7,7 @@
  */
 
 #include "main_menu.h"
+#include "TandH.h"
 // ==================================
 // 图标数组
 // ==================================
@@ -57,6 +58,7 @@ menu_item_t* main_menu_init(void)
             32,  // 图标宽度
             32   // 图标高度
         );
+
         
         if (menu_item != NULL) {
             // 设置回调函数（可选，主要用于按键处理等）
@@ -70,6 +72,10 @@ menu_item_t* main_menu_init(void)
             menu_add_child(main_menu, menu_item);
             
         }
+    }
+    menu_item_t*  TandH_page= TandH_init();
+    if (main_menu != NULL) {
+        menu_add_child(main_menu, TandH_page);
     }
     
     return main_menu;

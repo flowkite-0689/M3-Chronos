@@ -63,7 +63,7 @@ int main(void)
     /* 创建菜单任务 */
     xTaskCreate((TaskFunction_t)Menu_Main_Task,          /* 任务函数 */
                 (const char *)"Menu_Main",               /* 任务名称 */
-                (uint16_t)512,                          /* 任务堆栈大小 */
+                (uint16_t)1024,                          /* 任务堆栈大小 */
                 (void *)NULL,                           /* 任务函数参数 */
                 (UBaseType_t)3,                         /* 任务优先级 */
                 (TaskHandle_t *)&Menu_handle);           /* 任务控制句柄 */
