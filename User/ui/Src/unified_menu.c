@@ -182,10 +182,11 @@ void menu_refresh_display(void)
         case MENU_TYPE_VERTICAL_LIST:
             menu_display_vertical(g_menu_sys.current_menu);
             break;
-          
             
-                 
-        break;
+        case MENU_TYPE_CUSTOM:
+            menu_display_custom(g_menu_sys.current_menu);
+            break;
+            
         default:
             break;
     }
@@ -614,4 +615,18 @@ static void menu_item_update_selection(menu_item_t *menu, uint8_t new_index)
     menu->children[new_index].is_selected = 1;
     
     g_menu_sys.need_refresh = 1;
+}
+
+// ==================================
+// 自定义页面显示实现
+// ==================================
+
+void menu_display_custom(menu_item_t *menu)
+{
+    if (menu == NULL || menu->content.custom.draw_function == NULL) {
+        return;
+    }
+    
+    // 调用自定义绘制函数
+    menu->content.custom.draw_function(menu->content.custom.draw_context);
 }

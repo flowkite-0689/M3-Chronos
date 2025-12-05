@@ -24,7 +24,8 @@
 
 typedef enum {
     MENU_TYPE_HORIZONTAL_ICON,  // 横向图标菜单（如主菜单）
-    MENU_TYPE_VERTICAL_LIST     // 竖向列表菜单（如测试菜单）
+    MENU_TYPE_VERTICAL_LIST,    // 竖向列表菜单（如测试菜单）
+    MENU_TYPE_CUSTOM           // 自定义页面（完全自定义绘制和交互）
 } menu_type_t;
 
 // ==================================
@@ -253,6 +254,12 @@ void menu_display_horizontal(menu_item_t *menu);
 void menu_display_vertical(menu_item_t *menu);
 
 /**
+ * @brief 显示自定义页面
+ * @param menu 菜单项
+ */
+void menu_display_custom(menu_item_t *menu);
+
+/**
  * @brief 清屏并重绘当前菜单
  */
 void menu_clear_and_redraw(void);
@@ -342,10 +349,12 @@ void menu_task(void *pvParameters);
  */
 void menu_key_task(void *pvParameters);
 
-// ==================================
-// 便利宏定义
-// ==================================
+// 创建自定义菜单项
+#define MENU_ITEM_CUSTOM(name, draw_func, context) \
+    menu_item_create(name, MENU_TYPE_CUSTOM, \
+        (menu_content_t){.custom = {draw_func, context}})
 
+// 便利宏定义
 // 创建图标菜单项
 #define MENU_ITEM_ICON(name, icon_ptr, w, h) \
     menu_item_create(name, MENU_TYPE_HORIZONTAL_ICON, \
