@@ -183,6 +183,12 @@ int main(void)
         return -1;
     }
     
+    // 可选：启用显示队列模式
+    // 如果想使用队列模式，取消下面的注释
+    if (menu_display_queue_init() != 0) {
+        printf("Display queue initialization failed, using direct mode\r\n");
+    }
+    
     // 创建并初始化首页
     menu_item_t* index_menu = index_init();
     if (index_menu == NULL) {

@@ -17,6 +17,48 @@
 #include "oled_print.h"
 #include "Key.h"
 #include <stdio.h>
+#include <stdarg.h>
+
+// ==================================
+// 显示命令类型定义（可选，用于显示队列模式）
+// ==================================
+
+typedef enum {
+    MENU_DISPLAY_CMD_CLEAR,          // 清屏
+    MENU_DISPLAY_CMD_CLEAR_LINE,     // 清除指定行
+    MENU_DISPLAY_CMD_PRINT_LINE,     // 行打印
+    MENU_DISPLAY_CMD_PRINT,          // 指定位置打印
+    MENU_DISPLAY_CMD_PRINT_32,       // 32px行打印
+    MENU_DISPLAY_CMD_REFRESH,        // 刷新显示
+    MENU_DISPLAY_CMD_PICTURE,        // 显示图片
+    MENU_DISPLAY_CMD_PROGRESS_BAR    // 显示进度条
+} menu_display_cmd_type_t;
+
+// 显示消息结构体（可选，用于显示队列模式）
+typedef struct {
+    menu_display_cmd_type_t cmd;
+    uint8_t x;                     // X坐标或行号
+    uint8_t y;                     // Y坐标
+    char text[32];                  // 文本内容
+
+    union {
+        struct {
+            uint8_t width;
+            uint8_t height;
+            const unsigned char *data;
+        } pic;
+
+        struct {
+            uint8_t width;
+            uint8_t height;
+            int32_t value;
+            int32_t min_val;
+            int32_t max_val;
+            uint8_t show_border;
+            uint8_t fill_mode;
+        } progress;
+    } extra;
+} menu_display_msg_t;
 
 // ==================================
 // 菜单类型枚举
@@ -146,10 +188,14 @@ typedef struct {
     // FreeRTOS资源
     QueueHandle_t event_queue;           // 事件队列
     SemaphoreHandle_t display_mutex;     // 显示互斥量
+    QueueHandle_t display_queue;         // 显示队列（可选）
     
     // 按键处理
     uint32_t last_key_time;              // 上次按键时间
     uint8_t key_debounce_time;           // 按键去抖时间(ms)
+    
+    // 显示模式选择
+    uint8_t use_display_queue;           // 是否使用显示队列模式
 } menu_system_t;
 
 // ==================================
@@ -258,6 +304,25 @@ void menu_display_vertical(menu_item_t *menu);
  * @param menu 菜单项
  */
 void menu_display_custom(menu_item_t *menu);
+
+/**
+ * @brief 初始化显示队列（可选功能）
+ * @return 0-成功，其他-失败
+ */
+int8_t menu_display_queue_init(void);
+
+/**
+ * @brief 发送显示消息到队列（队列模式）
+ * @param msg 显示消息
+ * @return 0-成功，其他-失败
+ */
+int8_t menu_send_display_msg(menu_display_msg_t *msg);
+
+/**
+ * @brief 显示处理任务（队列模式）
+ * @param pvParameters 任务参数
+ */
+void menu_display_task(void *pvParameters);
 
 /**
  * @brief 清屏并重绘当前菜单
