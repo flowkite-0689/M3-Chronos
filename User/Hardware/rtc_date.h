@@ -4,6 +4,7 @@
 #include "stm32f10x.h"                  // Device header
 #include <time.h>
 #include "debug.h"
+#include "oled_print.h"
 extern uint16_t MyRTC_Time[];
 
 typedef struct

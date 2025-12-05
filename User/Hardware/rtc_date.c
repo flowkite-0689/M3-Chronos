@@ -51,10 +51,14 @@ void MyRTC_Init(void)
     }
     else // RTC不是第一次配置
     {
+        OLED_Printf_Line(1,"wait for ");
+        OLED_Printf_Line(2,"Synchro");
+        OLED_Refresh_Dirty();
         printf("--waitforSynchro--\n");
         RTC_WaitForSynchro(); // 等待同步
         printf("RTC_WaitForLastTask\n");
         RTC_WaitForLastTask(); // 等待上一次操作完成
+        OLED_Clear();
     }
     printf("RTC init OK!\n");
 }

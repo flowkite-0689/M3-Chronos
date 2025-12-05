@@ -1,12 +1,13 @@
 /**
  * @file index.c
- * @brief 首页界面实现文件 - 基于main.c中的Page_Logic
+ * @brief 首页界面实现文件 
  * @author flowkite-0689
  * @version v1.0
  * @date 2025.12.05
  */
 
 #include "index.h"
+#include "main_menu.h"
 #include <string.h>
 
 // ==================================
@@ -35,6 +36,7 @@ menu_item_t* index_init(void)
     g_index_state.step_count = 0;
     g_index_state.step_active = 0;
     
+	  
     // 初始化RTC
     MyRTC_Init();
     
@@ -43,11 +45,20 @@ menu_item_t* index_init(void)
     if (index_menu == NULL) {
         return NULL;
     }
+   
+
     
     // 设置回调函数
     menu_item_set_callbacks(index_menu, index_on_enter, index_on_exit, NULL, index_key_handler);
     
+    // 创建并添加主菜单作为子菜单
+    menu_item_t* main_menu = main_menu_init();
+    if (main_menu != NULL) {
+        menu_add_child(index_menu, main_menu);
+    }
+    
     printf("Index page initialized successfully\r\n");
+    
     return index_menu;
 }
 
@@ -94,9 +105,10 @@ void index_key_handler(menu_item_t* item, uint8_t key_event)
             break;
             
         case MENU_EVENT_KEY_ENTER:
-            // KEY3 - 进入功能菜单或执行特定操作
-            printf("Index: KEY3 pressed - Enter menu\r\n");
-            // 这里可以添加进入主菜单的逻辑
+            // KEY3 - 进入主菜单
+            printf("Index: KEY3 pressed - Enter main menu\r\n");
+            // 调用统一框架的进入选中函数
+            menu_enter_selected();
             break;
             
         case MENU_EVENT_REFRESH:
@@ -151,6 +163,7 @@ void index_on_enter(menu_item_t* item)
 void index_on_exit(menu_item_t* item)
 {
     printf("Exit index page\r\n");
+    OLED_Clear();
 }
 
 // ==================================
@@ -184,6 +197,6 @@ static void index_display_status_info(void)
     // 绘制底部进度条：表示一天的时间进度
     OLED_DrawProgressBar(0, 44, 125, 2, time_of_day, 0, 24 * 60, 0, 1);
     
-    // 绘制右侧进度条：表示秒数进度
+    // 绘制右侧进度条：表示当前秒数进度
     OLED_DrawProgressBar(125, 0, 2, 64, g_index_state.seconds, 0, 60, 0, 1);
 }
