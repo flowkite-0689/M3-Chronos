@@ -21,12 +21,6 @@ index_state_t g_index_state = {0};
 
 static void index_display_time_info(void);
 static void index_display_status_info(void);
-static void index_display_direct(index_state_t* state);
-static void index_display_via_queue(index_state_t* state);
-static void index_display_time_info_direct(void);
-static void index_display_status_info_direct(void);
-static void index_display_time_info_queue(void);
-static void index_display_status_info_queue(void);
 
 // ==================================
 // 首页实现
@@ -64,16 +58,19 @@ void index_draw_function(void* context)
         return;
     }
     
+    
+    
     // 更新时间信息
     index_update_time();
     
-    if (g_menu_sys.use_display_queue) {
-        // 使用队列模式发送显示命令
-        index_display_via_queue(state);
-    } else {
-        // 直接显示模式
-        index_display_direct(state);
-    }
+    // 显示时间信息
+    index_display_time_info();
+    
+    // 显示状态信息
+    index_display_status_info();
+    
+    // 刷新显示
+    OLED_Refresh_Dirty();
 }
 
 void index_key_handler(menu_item_t* item, uint8_t key_event)
@@ -189,134 +186,4 @@ static void index_display_status_info(void)
     
     // 绘制右侧进度条：表示秒数进度
     OLED_DrawProgressBar(125, 0, 2, 64, g_index_state.seconds, 0, 60, 0, 1);
-}
-
-// 直接显示模式实现
-static void index_display_direct(index_state_t* state)
-{
-    
-    
-    // 显示时间信息
-    index_display_time_info_direct();
-    
-    // 显示状态信息
-    index_display_status_info_direct();
-    
-    // 刷新显示
-    OLED_Refresh_Dirty();
-}
-
-static void index_display_time_info_direct(void)
-{
-    // 显示日期和星期：第0行
-    OLED_Printf_Line(0, "%02d/%02d/%02d %s",
-                     g_index_state.year%100,  // 只显示年份后两位
-                     g_index_state.month,
-                     g_index_state.day,
-                     g_index_state.weekday);
-    
-    // 显示时间：第1行，使用32像素字体
-    OLED_Printf_Line_32(1, " %02d:%02d:%02d", 
-                       g_index_state.hours, 
-                       g_index_state.minutes, 
-                       g_index_state.seconds);
-}
-
-static void index_display_status_info_direct(void)
-{
-    // 显示步数信息：第3行
-    OLED_Printf_Line(3, "step : %lu", g_index_state.step_count);
-    
-    // 计算一天中的分钟数
-    int time_of_day = (g_index_state.hours * 60 + g_index_state.minutes);
-    
-    // 绘制底部进度条：表示一天的时间进度
-    OLED_DrawProgressBar(0, 44, 125, 2, time_of_day, 0, 24 * 60, 0, 1);
-    
-    // 绘制右侧进度条：表示秒数进度
-    OLED_DrawProgressBar(125, 0, 2, 64, g_index_state.seconds, 0, 60, 0, 1);
-}
-
-// 队列模式实现
-static void index_display_via_queue(index_state_t* state)
-{
-    // 通过队列发送显示命令
-    menu_display_msg_t msg;
-    
-  
-    
-    // 显示时间信息
-    index_display_time_info_queue();
-    
-    // 显示状态信息
-    index_display_status_info_queue();
-    
-    // 刷新显示
-    memset(&msg, 0, sizeof(msg));
-    msg.cmd = MENU_DISPLAY_CMD_REFRESH;
-    menu_send_display_msg(&msg);
-}
-
-static void index_display_time_info_queue(void)
-{
-    menu_display_msg_t msg;
-    
-    // 显示日期和星期：第0行
-    memset(&msg, 0, sizeof(msg));
-    msg.cmd = MENU_DISPLAY_CMD_PRINT_LINE;
-    msg.x = 0;
-    snprintf(msg.text, sizeof(msg.text), "%02d/%02d/%02d %s",
-             g_index_state.year % 100, g_index_state.month, g_index_state.day, g_index_state.weekday);
-    menu_send_display_msg(&msg);
-    
-    // 显示时间：第1行，使用32像素字体
-    memset(&msg, 0, sizeof(msg));
-    msg.cmd = MENU_DISPLAY_CMD_PRINT_32;
-    msg.x = 1;
-    snprintf(msg.text, sizeof(msg.text), " %02d:%02d:%02d", 
-             g_index_state.hours, g_index_state.minutes, g_index_state.seconds);
-    menu_send_display_msg(&msg);
-}
-
-static void index_display_status_info_queue(void)
-{
-    menu_display_msg_t msg;
-    
-    // 显示步数信息：第3行
-    memset(&msg, 0, sizeof(msg));
-    msg.cmd = MENU_DISPLAY_CMD_PRINT_LINE;
-    msg.x = 3;
-    snprintf(msg.text, sizeof(msg.text), "step : %lu", g_index_state.step_count);
-    menu_send_display_msg(&msg);
-    
-    // 计算一天中的分钟数
-    int time_of_day = (g_index_state.hours * 60 + g_index_state.minutes);
-    
-    // 绘制底部进度条：表示一天的时间进度
-    memset(&msg, 0, sizeof(msg));
-    msg.cmd = MENU_DISPLAY_CMD_PROGRESS_BAR;
-    msg.x = 0;
-    msg.y = 44;
-    msg.extra.progress.width = 125;
-    msg.extra.progress.height = 2;
-    msg.extra.progress.value = time_of_day;
-    msg.extra.progress.min_val = 0;
-    msg.extra.progress.max_val = 24 * 60;
-    msg.extra.progress.show_border = 0;
-    msg.extra.progress.fill_mode = 1;
-    menu_send_display_msg(&msg);
-    
-    // 绘制右侧进度条：表示秒数进度
-    memset(&msg, 0, sizeof(msg));
-    msg.cmd = MENU_DISPLAY_CMD_PROGRESS_BAR;
-    msg.x = 125;
-    msg.y = 0;
-    msg.extra.progress.width = 2;
-    msg.extra.progress.height = 64;
-    msg.extra.progress.value = g_index_state.seconds;
-    msg.extra.progress.min_val = 0;
-    msg.extra.progress.max_val = 60;
-    msg.extra.progress.show_border = 0;
-    msg.extra.progress.fill_mode = 1;
-    menu_send_display_msg(&msg);
 }

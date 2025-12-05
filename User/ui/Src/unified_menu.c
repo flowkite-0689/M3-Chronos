@@ -41,16 +41,6 @@ int8_t menu_system_init(void)
         return -2;
     }
     
-    // 可选：创建显示队列
-    g_menu_sys.display_queue = xQueueCreate(20, sizeof(menu_display_msg_t));
-    if (g_menu_sys.display_queue == NULL) {
-        // 显示队列创建失败，设置为直接模式
-        g_menu_sys.use_display_queue = 0;
-    } else {
-        // 默认使用直接显示模式
-        g_menu_sys.use_display_queue = 0;
-    }
-    
     // 初始化状态
     g_menu_sys.current_menu = NULL;
     g_menu_sys.root_menu = NULL;
@@ -632,86 +622,6 @@ static void menu_item_update_selection(menu_item_t *menu, uint8_t new_index)
     menu->children[new_index].is_selected = 1;
     
     g_menu_sys.need_refresh = 1;
-}
-
-// ==================================
-// 显示队列功能实现（可选）
-// ==================================
-
-int8_t menu_display_queue_init(void)
-{
-    if (g_menu_sys.display_queue == NULL) {
-        return -1;
-    }
-    
-    // 启用显示队列模式
-    g_menu_sys.use_display_queue = 1;
-    
-    // 创建显示任务
-    xTaskCreate(menu_display_task, "MenuDisplay", 256, NULL, 3, NULL);
-    
-    return 0;
-}
-
-int8_t menu_send_display_msg(menu_display_msg_t *msg)
-{
-    if (msg == NULL || g_menu_sys.display_queue == NULL) {
-        return -1;
-    }
-    
-    return (xQueueSend(g_menu_sys.display_queue, msg, 0) == pdPASS) ? 0 : -1;
-}
-
-void menu_display_task(void *pvParameters)
-{
-    menu_display_msg_t msg;
-    
-    for (;;) {
-        // 等待显示消息
-        if (xQueueReceive(g_menu_sys.display_queue, &msg, portMAX_DELAY) == pdPASS) {
-            switch (msg.cmd) {
-                case MENU_DISPLAY_CMD_CLEAR:
-                    OLED_Clear();
-                    break;
-                    
-                case MENU_DISPLAY_CMD_CLEAR_LINE:
-                    OLED_Clear_Line(msg.x);
-                    break;
-                    
-                case MENU_DISPLAY_CMD_PRINT_LINE:
-                    OLED_Printf_Line(msg.x, "%s", msg.text);
-                    break;
-                    
-                case MENU_DISPLAY_CMD_PRINT:
-                    OLED_Printf(msg.x, msg.y, "%s", msg.text);
-                    break;
-                    
-                case MENU_DISPLAY_CMD_PRINT_32:
-                    OLED_Printf_Line_32(msg.x, "%s", msg.text);
-                    break;
-                    
-                case MENU_DISPLAY_CMD_REFRESH:
-                    OLED_Refresh_Dirty();
-                    break;
-                    
-                case MENU_DISPLAY_CMD_PICTURE:
-                    if (msg.extra.pic.data != NULL) {
-                        OLED_ShowPicture(msg.x, msg.y, msg.extra.pic.width, msg.extra.pic.height, msg.extra.pic.data, 1);
-                    }
-                    break;
-                    
-                case MENU_DISPLAY_CMD_PROGRESS_BAR:
-                    OLED_DrawProgressBar(
-                        msg.x, msg.y,
-                        msg.extra.progress.width, msg.extra.progress.height,
-                        msg.extra.progress.value,
-                        msg.extra.progress.min_val, msg.extra.progress.max_val,
-                        msg.extra.progress.show_border,
-                        msg.extra.progress.fill_mode);
-                    break;
-            }
-        }
-    }
 }
 
 // ==================================
