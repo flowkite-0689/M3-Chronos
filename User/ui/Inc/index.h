@@ -1,6 +1,6 @@
 /**
  * @file index.h
- * @brief 自定义首页界面头文件
+ * @brief 首页界面头文件 - 基于main.c中的Page_Logic
  * @author flowkite-0689
  * @version v1.0
  * @date 2025.12.05
@@ -11,8 +11,11 @@
 
 #include "stm32f10x.h"
 #include "FreeRTOS.h"
+#include "task.h"
+#include "queue.h"
 #include "unified_menu.h"
 #include "oled_print.h"
+#include "rtc_date.h"
 
 // ==================================
 // 首页状态数据结构
@@ -26,17 +29,11 @@ typedef struct {
     uint8_t day;
     uint8_t month;
     uint16_t year;
+    char weekday[16];
     
     // 系统状态
-    uint8_t wifi_connected;      // WiFi连接状态
-    uint8_t alarm_active;       // 闹钟状态
-    uint8_t battery_level;      // 电池电量
-    float temperature;          // 温度
-    
-    // 交互状态
-    uint8_t current_selection;   // 当前选中项
-    uint8_t edit_mode;          // 编辑模式
-    uint8_t blink_state;        // 闪烁状态
+    uint32_t step_count;        // 步数
+    uint8_t step_active;        // 步数激活状态
     
     // 刷新标志
     uint8_t need_refresh;       // 需要刷新
@@ -44,16 +41,10 @@ typedef struct {
 } index_state_t;
 
 // ==================================
-// 首页选项枚举
+// 全局变量声明
 // ==================================
 
-typedef enum {
-    INDEX_MENU_CLOCK = 0,       // 时钟功能
-    INDEX_MENU_ALARM,           // 闹钟功能
-    INDEX_MENU_SETTINGS,        // 设置功能
-    INDEX_MENU_TEST,            // 测试功能
-    INDEX_MENU_COUNT            // 选项总数
-} index_menu_option_t;
+extern index_state_t g_index_state;
 
 // ==================================
 // 函数声明
@@ -79,9 +70,9 @@ void index_draw_function(void* context);
 void index_key_handler(menu_item_t* item, uint8_t key_event);
 
 /**
- * @brief 更新首页状态信息
+ * @brief 更新首页时间信息
  */
-void index_update_state(void);
+void index_update_time(void);
 
 /**
  * @brief 获取首页状态
@@ -90,14 +81,20 @@ void index_update_state(void);
 index_state_t* index_get_state(void);
 
 /**
- * @brief 进入选中的功能
- * @param selection 选中的功能索引
- */
-void index_enter_function(uint8_t selection);
-
-/**
  * @brief 刷新首页显示
  */
 void index_refresh_display(void);
+
+/**
+ * @brief 首页进入回调
+ * @param item 菜单项
+ */
+void index_on_enter(menu_item_t* item);
+
+/**
+ * @brief 首页退出回调
+ * @param item 菜单项
+ */
+void index_on_exit(menu_item_t* item);
 
 #endif // __INDEX_H

@@ -54,7 +54,7 @@ int8_t menu_system_init(void)
     
     // 初始化按键处理
     g_menu_sys.last_key_time = 0;
-    g_menu_sys.key_debounce_time = 500; // 500ms去抖
+    g_menu_sys.key_debounce_time = (uint8_t)50; // 500ms去抖
     
     // 设置默认布局配置
     g_menu_sys.layout = (menu_layout_config_t)LAYOUT_HORIZONTAL_MAIN();
@@ -110,14 +110,20 @@ int8_t menu_add_child(menu_item_t *parent, menu_item_t *child)
         return -1;
     }
     
-    // 重新分配子菜单数组
-    menu_item_t *new_children = (menu_item_t*)pvPortRealloc(
-        parent->children, 
+    // 使用pvPortMalloc分配新内存，然后复制原有内容
+    menu_item_t *new_children = (menu_item_t*)pvPortMalloc(
         sizeof(menu_item_t) * (parent->child_count + 1)
     );
     
     if (new_children == NULL) {
         return -2;
+    }
+    
+    // 复制原有的子菜单项
+    if (parent->child_count > 0) {
+        memcpy(new_children, parent->children, sizeof(menu_item_t) * parent->child_count);
+        // 释放原有内存
+        vPortFree(parent->children);
     }
     
     parent->children = new_children;
@@ -271,7 +277,8 @@ void menu_clear_and_redraw(void)
 
 menu_event_t menu_key_to_event(uint8_t key)
 {
-    menu_event_t event = {0};
+    menu_event_t event;
+    memset(&event, 0, sizeof(menu_event_t));
     event.timestamp = xTaskGetTickCount();
     
     switch (key) {

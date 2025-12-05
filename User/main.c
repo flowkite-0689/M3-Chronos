@@ -12,6 +12,8 @@
 #include "queue.h"
 #include <string.h>
 #include <stdarg.h> // 加在文件顶部（已有 <string.h>，补上这个）
+#include "unified_menu.h"
+#include "index.h"
 // 创建队列来存储按键事件
 QueueHandle_t keyQueue;     // 按键队列
 QueueHandle_t displayQueue; // 显示队列
@@ -59,13 +61,12 @@ typedef struct
     } extra;
 } display_msg_t;
 
-static TaskHandle_t Page_Logic_handle = NULL;
-static TaskHandle_t Key_scan_handle = NULL;
-static TaskHandle_t OLED_Display_handle = NULL;
-/* 任务1 */
-static void Page_Logic(void *pvParameters);
-static void Key_scan(void *pvParameters);
-static void OLED_Display_Task(void *pvParameters);
+static TaskHandle_t Menu_handle = NULL;
+static TaskHandle_t Key_handle = NULL;
+
+/* 任务函数声明 */
+static void Menu_Main_Task(void *pvParameters);
+static void Key_Main_Task(void *pvParameters);
 
 // 显示辅助函数
 void display_clear(void)
@@ -160,7 +161,7 @@ void display_refresh(void)
 
 int main(void)
 {
-    // 系统开始初始化
+    // 系统初始化开始
     TIM2_Delay_Init();
     debug_init();
     OLED_Init();
@@ -176,166 +177,46 @@ int main(void)
     OLED_Printf_Line(3, "sys OK...");
     OLED_Refresh();
 
-    keyQueue = xQueueCreate(10, sizeof(int));
-    displayQueue = xQueueCreate(20, sizeof(display_msg_t));
-
-    if (keyQueue == NULL)
-    {
-        printf("Failed to create key queue\r\n");
+    // 初始化菜单系统
+    if (menu_system_init() != 0) {
+        printf("Menu system initialization failed\r\n");
         return -1;
     }
-    if (displayQueue == NULL)
-    {
-        printf("Failed to create display queue\r\n");
+    
+    // 创建并初始化首页
+    menu_item_t* index_menu = index_init();
+    if (index_menu == NULL) {
+        printf("Index page initialization failed\r\n");
         return -1;
     }
+    
+    // 设置首页为根菜单
+    g_menu_sys.root_menu = index_menu;
+    g_menu_sys.current_menu = index_menu;
 
-    /* 创建app_task1任务 */
-    xTaskCreate((TaskFunction_t)Key_scan,          /* 任务入口函数 */
-                (const char *)"Key_scan",          /* 任务名字 */
-                (uint16_t)512,                     /* 任务栈大小 */
-                (void *)NULL,                      /* 任务入口函数参数 */
-                (UBaseType_t)4,                    /* 任务的优先级 */
-                (TaskHandle_t *)&Key_scan_handle); /* 任务控制块指针 */
-    xTaskCreate(Page_Logic, "PageLogic", 256, NULL, 2, &Page_Logic_handle);
-    xTaskCreate(OLED_Display_Task, "OLED_Display", 256, NULL, 3, &OLED_Display_handle);
+    /* 创建菜单任务 */
+    xTaskCreate((TaskFunction_t)Menu_Main_Task,          /* 任务函数 */
+                (const char *)"Menu_Main",               /* 任务名称 */
+                (uint16_t)512,                          /* 任务堆栈大小 */
+                (void *)NULL,                           /* 任务函数参数 */
+                (UBaseType_t)3,                         /* 任务优先级 */
+                (TaskHandle_t *)&Menu_handle);           /* 任务控制句柄 */
+    xTaskCreate(Key_Main_Task, "KeyMain", 128, NULL, 4, &Key_handle);
+    
     // LED1_OFF();
-    /* 开启任务调度 */
+    /* 启动调度器 */
     vTaskStartScheduler();
     LED2_ON();
 }
 
-static void Page_Logic(void *pvParameters)
+static void Menu_Main_Task(void *pvParameters)
 {
-    int received_key;
-    MyRTC_Init();
-    for (;;)
-    {
-        MyRTC_ReadTime();
-        // 获取rtc时间
-        display_print_line(0, "%02d/%02d/%02d %s",
-                           RTC_data.year,
-                           RTC_data.mon,
-                           RTC_data.day,
-                           RTC_data.weekday);
-
-        display_print_line_32(1, " %02d:%02d:%02d", RTC_data.hours, RTC_data.minutes, RTC_data.seconds);
-        
-        
-        vTaskDelay(60);
-        display_print_line(3,"step : 0");//预留
-
-        int timeofdaybeuse = (RTC_data.hours * 60 + RTC_data.minutes);
-		display_DrawProgressBar(0, 44, 125, 2, timeofdaybeuse, 0, 24 * 60, 0, 1);
-		display_DrawProgressBar(125, 0, 2, 64, RTC_data.seconds, 0, 60, 0, 1); // ????
-		display_refresh();
-        // 等待按键事件
-        if (xQueueReceive(keyQueue, &received_key, 0) == pdPASS)
-        {
-            // 处理按键事件
-            switch (received_key)
-            {
-            case 1:
-              
-
-                break;
-            case 2:
-              
-
-         
-                break;
-            case 3:
-              
-
-               
-                break;
-            case 4:
-                
-                break;
-            }
-            // 发送刷新命令
-            display_refresh();
-        }
-        
-        
-    }
+    // 直接调用统一菜单框架的任务
+    menu_task(pvParameters);
 }
 
-static void Key_scan(void *pvParameters)
+static void Key_Main_Task(void *pvParameters)
 {
-    // MyRTC_Init();
-    int KeyNum;
-    for (;;)
-    {
-        KeyNum = Key_GetNum(); // 获取按键键码
-
-        if (KeyNum != 0) // 有按键按下
-        {
-            BEEP_Buzz(5); // 蜂鸣器反馈
-
-            // 将按键值发送到队列
-            if (xQueueSend(keyQueue, &KeyNum, 0) != pdPASS)
-            {
-                // 队列满，可以选择忽略或处理错误
-                printf("Key queue full\r\n");
-            }
-        }
-
-        vTaskDelay(60); // 60ms去抖延迟
-    }
-}
-
-static void OLED_Display_Task(void *pvParameters)
-{
-    display_msg_t msg;
-
-    for (;;)
-    {
-        // 等待显示消息
-        if (xQueueReceive(displayQueue, &msg, portMAX_DELAY) == pdPASS)
-        {
-            switch (msg.cmd)
-            {
-            case DISPLAY_CMD_CLEAR:
-                OLED_Clear();
-                break;
-
-            case DISPLAY_CMD_CLEAR_LINE:
-                OLED_Clear_Line(msg.x);
-                break;
-
-            case DISPLAY_CMD_PRINT_LINE:
-                OLED_Printf_Line(msg.x, "%s", msg.text);
-                break;
-
-            case DISPLAY_CMD_PRINT:
-                OLED_Printf(msg.x, msg.y, "%s", msg.text);
-                break;
-
-            case DISPLAY_CMD_PRINT_32:
-                OLED_Printf_Line_32(msg.x, "%s", msg.text);
-                break;
-
-            case DISPLAY_CMD_REFRESH:
-                OLED_Refresh_Dirty();
-                break;
-
-            case DISPLAY_CMD_PICTURE:
-                if (msg.extra.pic.data != NULL)
-                {
-                    OLED_ShowPicture(msg.x, msg.y, msg.extra.pic.width, msg.extra.pic.height, msg.extra.pic.data, 1);
-                }
-                break;
-            case DISPLAY_CMD_PROGRESS_BAR:
-                OLED_DrawProgressBar(
-                    msg.x, msg.y,
-                    msg.extra.progress.width, msg.extra.progress.height,
-                    msg.extra.progress.value,
-                    msg.extra.progress.min_val, msg.extra.progress.max_val,
-                    msg.extra.progress.show_border,
-                    msg.extra.progress.fill_mode);
-                break;
-            }
-        }
-    }
+    // 直接调用统一菜单框架的按键任务
+    menu_key_task(pvParameters);
 }

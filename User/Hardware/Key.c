@@ -61,3 +61,7 @@ uint8_t Key_GetNum(void)
 	
 	return KeyNum;			//返回键码值，如果没有按键按下，所有if都不成立，则键码为默认值0
 }
+uint8_t KEY_Get(void)
+{
+	return Key_GetNum();
+}
