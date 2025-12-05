@@ -528,10 +528,20 @@ int8_t menu_enter_selected(void)
     
     // 如果有子菜单，进入子菜单
     if (selected->child_count > 0) {
-        // 设置子菜单的父菜单为当前菜单
+        
+        if(menu->type == MENU_TYPE_HORIZONTAL_ICON){
+        // 进入第一个子菜单
+
+        menu_item_t *child_menu = &selected->children[0];
+        child_menu->parent = g_menu_sys.current_menu;
+        printf("menu_enter_selected\nparent : %s ,\n current : %s \n",child_menu->parent->name,child_menu->name);
+        return menu_enter(child_menu);}else
+        {
+             // 设置子菜单的父菜单为当前菜单
         selected->parent = g_menu_sys.current_menu;
         printf("menu_enter_selected\nparent : %s ,\n current : %s \n",selected->parent->name,selected->name);
         return menu_enter(selected);
+        }
     } else {
         // 没有子菜单，调用进入回调并返回当前索引（兼容原有行为）
         if (selected->on_enter) {

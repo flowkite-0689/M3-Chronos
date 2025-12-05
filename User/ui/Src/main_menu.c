@@ -25,7 +25,7 @@ const unsigned char *main_menu_icons[] = {
 const char *main_menu_names[] = {
     "Stopwatch",
     "Settings",
-    "Temp&Humid",
+    "TandH_page",
     "Flashlight",
     "Alarm",
     "Step Counter",
@@ -61,21 +61,25 @@ menu_item_t* main_menu_init(void)
 
         
         if (menu_item != NULL) {
-            // 设置回调函数（可选，主要用于按键处理等）
+            // 设置回调函数
             menu_item_set_callbacks(menu_item, 
                                    main_menu_on_enter,  // 进入回调
                                    main_menu_on_exit,   // 退出回调
                                    NULL,               // 选中回调（不需要特殊处理）
                                    NULL); // 按键处理
             
+            // 特殊处理：将TandH页面绑定到温湿度图标项
+            if (i == 2) { // "Temp&Humid" 是第3个菜单项（索引2）
+                menu_item_t* TandH_page = TandH_init();
+                if (TandH_page != NULL) {
+                    menu_add_child(menu_item, TandH_page);
+                }
+            }
+            
             // 添加到主菜单
             menu_add_child(main_menu, menu_item);
             
         }
-    }
-    menu_item_t*  TandH_page= TandH_init();
-    if (main_menu != NULL) {
-        menu_add_child(main_menu, TandH_page);
     }
     
     return main_menu;
