@@ -23,6 +23,8 @@ menu_system_t g_menu_sys = {0};
 static void menu_update_page_info(menu_item_t *menu);
 static void menu_item_deselect_all(menu_item_t *menu);
 static void menu_item_update_selection(menu_item_t *menu, uint8_t new_index);
+static void menu_set_layout_for_type(menu_type_t type);
+static void menu_set_layout_for_type(menu_type_t type);
 
 // ==================================
 // 菜单系统初始化
@@ -251,15 +253,18 @@ void menu_display_vertical(menu_item_t *menu)
         end_index = menu->child_count;
     }
     
-    // 清屏
-    OLED_Clear();
     
-    // 显示当前页的项目
+    // 显示当前页的项目（类似你想要的tsetlist_RE功能）
     for (uint8_t i = start_index; i < end_index; i++) {
         uint8_t line = i - start_index;
-        char prefix = (i == menu->selected_child) ? '>' : ' ';
+        char arrow = (i == menu->selected_child) ? '>' : ' ';
         
-        OLED_Printf_Line(line, "%c %s", prefix, menu->children[i].content.text.text);
+        OLED_Printf_Line(line, "%c %s", arrow, menu->children[i].content.text.text);
+    }
+    
+    // 如果本页不足4行，下面几行清空
+    for (uint8_t i = end_index - start_index; i < g_menu_sys.items_per_page; i++) {
+        OLED_Clear_Line(i);
     }
     
     OLED_Refresh_Dirty();
@@ -385,17 +390,23 @@ int8_t menu_handle_vertical_key(menu_item_t *menu, uint8_t key_event)
     
     switch (key_event) {
         case MENU_EVENT_KEY_UP:
-            // 上一个选项
+            // 上一个选项（类似你想要的testlist循环选择）
             if (menu->selected_child == 0) {
                 menu->selected_child = menu->child_count - 1;
             } else {
                 menu->selected_child--;
             }
+            // 更新分页信息
+            menu_update_page_info(menu);
+            g_menu_sys.need_refresh = 1;
             break;
             
         case MENU_EVENT_KEY_DOWN:
-            // 下一个选项
+            // 下一个选项（循环选择）
             menu->selected_child = (menu->selected_child + 1) % menu->child_count;
+            // 更新分页信息
+            menu_update_page_info(menu);
+            g_menu_sys.need_refresh = 1;
             break;
             
         case MENU_EVENT_KEY_SELECT:
@@ -403,7 +414,7 @@ int8_t menu_handle_vertical_key(menu_item_t *menu, uint8_t key_event)
             return menu_back_to_parent();
             
         case MENU_EVENT_KEY_ENTER:
-            // 进入选中功能
+            // 进入选中功能（类似test_enter_select功能）
             return menu_enter_selected();
             
         case MENU_EVENT_REFRESH:
@@ -434,10 +445,12 @@ int8_t menu_enter(menu_item_t *menu)
     }
     
     // 设置新菜单
-  
     g_menu_sys.current_menu = menu;
     g_menu_sys.menu_active = 1;
     g_menu_sys.need_refresh = 1;
+    
+    // 根据菜单类型设置布局配置
+    menu_set_layout_for_type(menu->type);
     
     // 重置分页信息
     g_menu_sys.current_page = 0;
@@ -458,7 +471,7 @@ int8_t menu_back_to_parent(void)
     if (g_menu_sys.current_menu == NULL || g_menu_sys.current_menu->parent == NULL) {
         return -1;
     }
-    
+    OLED_Clear();
     menu_item_t *parent = g_menu_sys.current_menu->parent;
     
     // 调用退出回调
@@ -662,4 +675,34 @@ void menu_display_custom(menu_item_t *menu)
     
     // 调用自定义绘制函数
     menu->content.custom.draw_function(menu->content.custom.draw_context);
+}
+
+// ==================================
+// 菜单布局设置函数
+// ==================================
+
+static void menu_set_layout_for_type(menu_type_t type)
+{
+    switch (type) {
+        case MENU_TYPE_HORIZONTAL_ICON:
+            g_menu_sys.layout = (menu_layout_config_t)LAYOUT_HORIZONTAL_MAIN();
+            g_menu_sys.items_per_page = g_menu_sys.layout.horizontal.visible_count;
+            break;
+            
+        case MENU_TYPE_VERTICAL_LIST:
+            g_menu_sys.layout = (menu_layout_config_t)LAYOUT_VERTICAL_TEST();
+            g_menu_sys.items_per_page = g_menu_sys.layout.vertical.items_per_page;
+            break;
+            
+        case MENU_TYPE_CUSTOM:
+            // 自定义页面使用默认布局
+            g_menu_sys.layout = (menu_layout_config_t)LAYOUT_HORIZONTAL_MAIN();
+            g_menu_sys.items_per_page = 4;
+            break;
+            
+        default:
+            break;
+    }
+    
+    printf("Set layout for menu type: %d\r\n", type);
 }
