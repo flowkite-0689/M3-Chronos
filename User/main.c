@@ -38,7 +38,7 @@ int main(void)
     // RTC_SetTime_Manual(15,22,0);
 
     // 系统初始化成功
-    printf("init OK\n");
+    printf("wait for sys OK...\n");
     OLED_Clear();
     OLED_Printf_Line(3, "wait for sys OK...");
     OLED_Refresh();

@@ -43,6 +43,25 @@ menu_item_t *setting_menu_init(void)
                               setting_menu_on_exit,  // 退出回调
                               NULL,                  // 选中回调（不需要特殊处理）
                               NULL);                 // 按键处理
+
+              if (i==0)
+              {
+                menu_item_t* SetTime_page =SetTime_init();
+                if (SetTime_page != NULL)
+                {
+                    menu_add_child(menu_item, SetTime_page);
+                }
+              }
+              if (i == 1)
+              {
+                 menu_item_t* SetDate_page =SetDate_init();
+                if (SetDate_page != NULL)
+                {
+                    menu_add_child(menu_item, SetDate_page);
+                }
+              }
+              
+              
     }
     menu_add_child(setting_menu, menu_item);
   }
