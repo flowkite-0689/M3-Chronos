@@ -193,8 +193,8 @@ static void index_display_status_info(void)
     int time_of_day = (g_index_state.hours * 60 + g_index_state.minutes);
     
     // 绘制底部进度条：表示一天的时间进度
-    OLED_DrawProgressBar(0, 44, 125, 2, time_of_day, 0, 24 * 60, 0, 1);
+    OLED_DrawProgressBar(0, 44, 125, 2, time_of_day, 0, 24 * 60, 0, 1,1);
     
     // 绘制右侧进度条：表示当前秒数进度
-    OLED_DrawProgressBar(125, 0, 2, 64, g_index_state.seconds, 0, 60, 0, 1);
+    OLED_DrawProgressBar(125, 0, 2, 64, g_index_state.seconds, 0, 60, 0, 1,1);
 }

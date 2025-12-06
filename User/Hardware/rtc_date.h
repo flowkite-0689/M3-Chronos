@@ -5,6 +5,7 @@
 #include <time.h>
 #include "debug.h"
 #include "oled_print.h"
+#include "Delay.h"
 extern uint16_t MyRTC_Time[];
 
 typedef struct

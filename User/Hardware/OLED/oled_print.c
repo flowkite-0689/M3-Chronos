@@ -187,7 +187,7 @@ void OLED_Clear_Rect(uint8_t x1, uint8_t y1, uint8_t x2, uint8_t y2)
  * @param max_val        : 最大值（如 500）
  * @param show_border    : 是否显示边框 (1=是, 0=否)
  * @param fill_mode      : 填充模式 (1=实心, 0=仅外框)
- *
+ * @param point_mode     : 画点模式
  * @note 实际绘制区域 = [x, y] ~ [x+width-1, y+height-1]
  *       调用者可自行在外围画标签（如 "0C", "50C"）
  */
@@ -197,7 +197,8 @@ void OLED_DrawProgressBar(
     int32_t value,
     int32_t min_val, int32_t max_val,
     uint8_t show_border,
-    uint8_t fill_mode)
+    uint8_t fill_mode,
+    uint8_t point_mode)
 {
     if (width == 0 || height == 0)
         return;
@@ -213,7 +214,7 @@ void OLED_DrawProgressBar(
     // 计算填充宽度（像素）
     uint32_t range = (uint32_t)(max_val - min_val);
     uint32_t fill_w = (uint32_t)(value - min_val) * width / range;
-  uint32_t fill_h = (uint32_t)(value - min_val) * height / range;
+    uint32_t fill_h = (uint32_t)(value - min_val) * height / range;
     // 先清除整个进度条区域（含旧填充+边框）
     OLED_Clear_Rect(x, y, x + width - 1, y + height - 1);
 
@@ -246,6 +247,11 @@ void OLED_DrawProgressBar(
     if (fill_mode)
     {
 
+        if (point_mode==0)
+        {
+            OLED_DrawProgressBar(x,y,width,height,max_val,min_val,max_val,show_border,fill_mode,1);
+        }
+        
         if (width > height)
         {
             uint8_t x_fill_end = x + fill_w;
@@ -259,7 +265,7 @@ void OLED_DrawProgressBar(
                      yy < y + height - (show_border ? 1 : 0);
                      yy++)
                 {
-                    OLED_DrawPoint(xx, yy, 1);
+                    OLED_DrawPoint(xx, yy, (point_mode?1:0));
                 }
             }
         }else{
@@ -276,7 +282,7 @@ void OLED_DrawProgressBar(
                      xx < x + width - (show_border ? 1 : 0);
                      xx++)
                 {
-                    OLED_DrawPoint(xx, yy, 1);
+                    OLED_DrawPoint(xx, yy, (point_mode?1:0));
                 }
             }
         }

@@ -17,45 +17,32 @@ static const char *weekday_str[] = {
 };
 
 // ================== 工具函数：儒略日计算 ==================
-// 参考：https://en.wikipedia.org/wiki/Julian_day#Converting_Julian_or_Gregorian_calendar_date_to_Julian_day_number
-
 // 将年月日转换为儒略日（整数），支持 1900~2100
-static uint32_t DateToJulianDay(uint16_t year, uint8_t month, uint8_t day) {
-    if (month <= 2) {
-        year--;
-        month += 12;
-    }
-    uint32_t A = year / 100;
-    uint32_t B = 2 - A + (A / 4);
-    return (uint32_t)(365.25 * (year + 4716)) + (uint32_t)(30.6001 * (month + 1)) + day + B - 1524;
-}
+// static uint32_t DateToJulianDay(uint16_t year, uint8_t month, uint8_t day) {
+//     if (month <= 2) {
+//         year--;
+//         month += 12;
+//     }
+//     uint32_t A = year / 100;
+//     uint32_t B = 2 - A + (A / 4);
+//     return (uint32_t)(365.25 * (year + 4716)) + (uint32_t)(30.6001 * (month + 1)) + day + B - 1524;
+// }
 
-// 将儒略日转换为年月日（输出参数）
-static void JulianDayToDate(uint32_t jd, uint16_t *year, uint8_t *month, uint8_t *day) {
-    uint32_t a = jd + 32044;
-    uint32_t b = (4 * a + 3) / 146097;
-    uint32_t c = a - (146097 * b) / 4;
-    uint32_t d = (4 * c + 3) / 1461;
-    uint32_t e = c - (1461 * d) / 4;
-    uint32_t m = (5 * e + 2) / 153;
+// // 将儒略日转换为年月日（输出参数）
+// static void JulianDayToDate(uint32_t jd, uint16_t *year, uint8_t *month, uint8_t *day) {
+//     uint32_t a = jd + 32044;
+//     uint32_t b = (4 * a + 3) / 146097;
+//     uint32_t c = a - (146097 * b) / 4;
+//     uint32_t d = (4 * c + 3) / 1461;
+//     uint32_t e = c - (1461 * d) / 4;
+//     uint32_t m = (5 * e + 2) / 153;
 
-    *day   = (uint8_t)(e - (153 * m + 2) / 5 + 1);
-    *month = (uint8_t)(m + 3 - 12 * (m / 10));
-    *year  = (uint16_t)(100 * b + d - 4800 + (m / 10));
-}
+//     *day   = (uint8_t)(e - (153 * m + 2) / 5 + 1);
+//     *month = (uint8_t)(m + 3 - 12 * (m / 10));
+//     *year  = (uint16_t)(100 * b + d - 4800 + (m / 10));
+// }
 
-// 计算星期（0=Sun, 1=Mon, ..., 6=Sat），输入儒略日
-static uint8_t GetWeekDay(uint32_t julian_day) {
-    return (julian_day + 1) % 7;  // JD 0 = Monday? 实际 JD 2440588 = 1970-01-01 (Thu)
-    // 更可靠：已知 1970-01-01 是周四（3），所以：
-    // return (julian_day + 1) % 7; → 经测试，2440588 % 7 = 4 → (4+1)%7=5 ≠ 3 ❌
-    // 改为：
-    return (julian_day + 1) % 7;
-    // 实测：2025-12-06（周六）JD=2461016，(2461016+1)%7=2461017%7=2 → 对应 weekday_str[2]="  Tuesday"? 错！
-}
-
-//  正确计算星期：已知 2000-01-01 是周六（6）
-// 使用 Zeller 公式（更可靠）
+// 使用 Zeller 公式
 static uint8_t ZellerWeekDay(uint16_t year, uint8_t month, uint8_t day) {
     if (month < 3) {
         month += 12;
@@ -150,18 +137,9 @@ static void SecondsToDateTime(uint32_t seconds,
 
 // ================== RTC 底层操作 ==================
 
-#define LSE_TIMEOUT_MS   5000  // 5秒超时
+#define LSE_TIMEOUT_S   5  // 5秒超时
 #define SYSCLK_FREQ_HZ  72000000
 
-// 简易微秒延时（用于超时，假设 SysTick 为 1ms）
-static void Delay_ms(uint32_t ms) {
-    volatile uint32_t count = ms;
-    while (count--) {
-        // 假设有 SysTick 每 1ms 中断一次，或使用 DWT（此处简化）
-        // 实际项目建议用 HAL_Delay 或自定义延时
-        for (volatile int i = 0; i < (SYSCLK_FREQ_HZ / 8000); i++); // ~1ms @72MHz
-    }
-}
 
 // 初始化 RTC（LSE 为主，失败回退 LSI）
 void MyRTC_Init(void)
@@ -178,9 +156,13 @@ void MyRTC_Init(void)
         RCC_LSEConfig(RCC_LSE_ON);
         uint32_t timeout = 0;
         while (RCC_GetFlagStatus(RCC_FLAG_LSERDY) != SET) {
-            Delay_ms(1);
-            if (++timeout > LSE_TIMEOUT_MS) {
+            Delay_s(1);
+            OLED_Printf_Line(0,"LSE time out : %d",(5-timeout));
+            OLED_DrawProgressBar(0,32,128,10,timeout,0,LSE_TIMEOUT_S,1,1,0);
+            OLED_Refresh_Dirty();
+            if (++timeout > LSE_TIMEOUT_S) {
                 printf("LSE timeout! Falling back to LSI.\n");
+                OLED_Clear();
                 goto USE_LSI;
             }
         }
@@ -234,7 +216,7 @@ void MyRTC_Init(void)
             printf("Resuming with LSE...\n");
             RCC_LSEConfig(RCC_LSE_ON);
             uint32_t t = 0;
-            while (RCC_GetFlagStatus(RCC_FLAG_LSERDY) == RESET && t++ < LSE_TIMEOUT_MS) Delay_ms(1);
+            while (RCC_GetFlagStatus(RCC_FLAG_LSERDY) == RESET && t++ < LSE_TIMEOUT_S) Delay_s(1);
             RCC_RTCCLKConfig(RCC_RTCCLKSource_LSE);
         }
         RCC_RTCCLKCmd(ENABLE);

@@ -16,7 +16,7 @@ void OLED_DrawTempBar_Line1(int16_t temp_tenth) // 0.1°C
   OLED_ShowString(0, 16, (uint8_t *)"0", 12, 1);
   OLED_ShowString(110, 16, (uint8_t *)"50", 12, 1);
   // 进度条：x=20, y=18, w=88, h=8, 0~500 (0.0~50.0°C)
-  OLED_DrawProgressBar(17, 18, 87, 8, temp_tenth, 0, 500, 1, 1);
+  OLED_DrawProgressBar(17, 18, 87, 8, temp_tenth, 0, 500, 1, 1,1);
 }
 
 // 湿度进度条（line=3）
@@ -25,7 +25,7 @@ void OLED_DrawHumidityBar_Line3(uint8_t humi)
   OLED_Clear_Line(3);
   OLED_ShowString(0, 48, (uint8_t *)"0", 12, 1);
   OLED_ShowString(110, 48, (uint8_t *)"100", 12, 1);
-  OLED_DrawProgressBar(17, 52, 87, 8, humi, 0, 100, 1, 1);
+  OLED_DrawProgressBar(17, 52, 87, 8, humi, 0, 100, 1, 1,1);
 }
 
 static void TandH_display_info(void);

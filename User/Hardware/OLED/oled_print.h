@@ -60,6 +60,7 @@ void OLED_DrawProgressBar(
     int32_t min_val, int32_t max_val,
     uint8_t show_border,
     uint8_t fill_mode
-);
+,
+    uint8_t point_mode);
 void OLED_Clear_Rect(uint8_t x1, uint8_t y1, uint8_t x2, uint8_t y2);
 #endif // __OLED_PRINT_H__

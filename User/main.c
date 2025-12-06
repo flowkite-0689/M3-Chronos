@@ -40,7 +40,7 @@ int main(void)
     // 系统初始化成功
     printf("init OK\n");
     OLED_Clear();
-    OLED_Printf_Line(3, "sys OK...");
+    OLED_Printf_Line(3, "wait for sys OK...");
     OLED_Refresh();
 
     // 初始化菜单系统
