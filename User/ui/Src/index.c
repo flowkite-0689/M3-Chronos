@@ -38,7 +38,7 @@ menu_item_t* index_init(void)
     
 	  
     // 初始化RTC
-    // MyRTC_Init();
+    MyRTC_Init();
     
     // 创建首页菜单项
     menu_item_t* index_menu = MENU_ITEM_CUSTOM("Index", index_draw_function, &g_index_state);

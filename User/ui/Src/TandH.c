@@ -13,8 +13,8 @@ void OLED_DrawTempBar_Line1(int16_t temp_tenth) // 0.1°C
 {
   OLED_Clear_Line(1);
   // 标签
-  OLED_ShowString(0, 16, (uint8_t *)"0C", 12, 1);
-  OLED_ShowString(110, 16, (uint8_t *)"50C", 12, 1);
+  OLED_ShowString(0, 16, (uint8_t *)"0", 12, 1);
+  OLED_ShowString(110, 16, (uint8_t *)"50", 12, 1);
   // 进度条：x=20, y=18, w=88, h=8, 0~500 (0.0~50.0°C)
   OLED_DrawProgressBar(17, 18, 87, 8, temp_tenth, 0, 500, 1, 1);
 }
