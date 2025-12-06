@@ -12,6 +12,7 @@
 //++++++++++++++++++++++++=
 #include "TandH.h"
 #include "setting_menu.h"
+#include "Stopwatch.h"
 // ==================================
 // 图标数组
 // ==================================
@@ -88,6 +89,15 @@ menu_item_t* main_menu_init(void)
                 }
                 
             }
+            if (i == 0)
+            {
+                menu_item_t* Stopwatch_page =Stopwatch_init();
+                if (Stopwatch_page != NULL)
+                {
+                    menu_add_child(menu_item, Stopwatch_page);
+                }
+            }
+            
             
             
             // 添加到主菜单
