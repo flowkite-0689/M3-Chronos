@@ -15,6 +15,7 @@
 #include "Stopwatch.h"
 
 #include "alarm_menu.h"
+#include "testlist_menu.h"
 // ==================================
 // 图标数组
 // ==================================
@@ -106,6 +107,16 @@ menu_item_t* main_menu_init(void)
                 if (alarm_menu != NULL)
                 {
                     menu_add_child(menu_item, alarm_menu);
+                }
+            }
+            
+            if (i == 6)
+            {
+               printf("testlist_menu_init start init->\r\n");
+                     menu_item_t* testlist_menu =testlist_menu_init();
+                if (testlist_menu != NULL)
+                {
+                    menu_add_child(menu_item, testlist_menu);
                 }
             }
             

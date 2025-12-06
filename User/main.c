@@ -60,23 +60,32 @@ int main(void)
     g_menu_sys.root_menu = index_menu;
     g_menu_sys.current_menu = index_menu;
 
+    printf("root_menu init OK\n");
     /* 创建菜单任务 */
     xTaskCreate((TaskFunction_t)Menu_Main_Task,          /* 任务函数 */
                 (const char *)"Menu_Main",               /* 任务名称 */
-                (uint16_t)1024,                          /* 任务堆栈大小 */
+                (uint16_t)2024,                          /* 任务堆栈大小 */
                 (void *)NULL,                           /* 任务函数参数 */
                 (UBaseType_t)3,                         /* 任务优先级 */
                 (TaskHandle_t *)&Menu_handle);           /* 任务控制句柄 */
     xTaskCreate(Key_Main_Task, "KeyMain", 128, NULL, 4, &Key_handle);
     
-    // LED1_OFF();
+    printf("creat task OK\n");
+    
+    // 添加调试信息，确认调度器启动
+    printf("Starting scheduler...\n");
+    
     /* 启动调度器 */
     vTaskStartScheduler();
+    
+    // 如果调度器启动失败，会执行到这里
+    printf("ERROR: Scheduler failed to start!\n");
     LED2_ON();
 }
 
 static void Menu_Main_Task(void *pvParameters)
 {
+    printf("Menu_Main_Task start ->\n");
     // 直接调用统一菜单框架的任务
     menu_task(pvParameters);
 }

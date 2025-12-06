@@ -1,5 +1,6 @@
 #include "setting_menu.h"
-
+#include "SetDate.h"
+#include "SetTime.h"
 // ==================================
 // 图标数组
 // ==================================
