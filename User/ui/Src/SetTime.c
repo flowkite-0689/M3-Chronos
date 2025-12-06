@@ -177,24 +177,22 @@ static void SetTime_display_info(void)
   {
   case 0: // 设置小时
     OLED_Clear_Line(1);
-    OLED_Printf_Line(1, "  [%02d]:%02d:%02d", s_SetTime_state.temp_hours, s_SetTime_state.temp_minutes, s_SetTime_state.temp_seconds);
+    OLED_Printf_Line_32(0, "[%02d]:%02d:%02d", s_SetTime_state.temp_hours, s_SetTime_state.temp_minutes, s_SetTime_state.temp_seconds);
     OLED_Clear_Line(2);
     OLED_Printf_Line(2, "    Set Hours");
     break;
   case 1: // 设置分钟
     OLED_Clear_Line(1);
-    OLED_Printf_Line(1, "   %02d:[%02d]:%02d", s_SetTime_state.temp_hours, s_SetTime_state.temp_minutes, s_SetTime_state.temp_seconds);
+    OLED_Printf_Line_32(0, "%02d:[%02d]:%02d", s_SetTime_state.temp_hours, s_SetTime_state.temp_minutes, s_SetTime_state.temp_seconds);
     OLED_Clear_Line(2);
     OLED_Printf_Line(2, "   Set Minutes");
     break;
   case 2: // 设置秒
     OLED_Clear_Line(1);
-    OLED_Printf_Line(1, "   %02d:%02d:[%02d]", s_SetTime_state.temp_hours, s_SetTime_state.temp_minutes, s_SetTime_state.temp_seconds);
+    OLED_Printf_Line_32(0, "%02d:%02d:[%02d]", s_SetTime_state.temp_hours, s_SetTime_state.temp_minutes, s_SetTime_state.temp_seconds);
     OLED_Clear_Line(2);
     OLED_Printf_Line(2, "   Set Seconds");
     break;
   }
-
-  OLED_Printf_Line(0, "   SET TIME");
   OLED_Printf_Line(3, "KEY0:+ KEY1:- KEY2:OK");
 }

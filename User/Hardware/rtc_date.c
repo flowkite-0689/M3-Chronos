@@ -148,7 +148,7 @@ uint8_t RTC_WaitForSynchro_Debug(void)
     while ((RTC->CRL & RTC_FLAG_RSF) == (uint16_t)RESET)
     {
         Delay_ms(1);
-        if (++timeout > 5000) {
+        if (++timeout > 500) {
             printf("[RTC ERROR] RSF timeout! CRL=0x%04X\n", RTC->CRL);
             printf("Check: 1. PC14/PC15 IN_FLOATING? 2. VBAT powered? 3. LSE crystal?\n");
             return 0;

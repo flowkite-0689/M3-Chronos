@@ -12,7 +12,7 @@
 typedef struct{
     // 日期设置状态
     uint8_t set_step;           // 当前设置步骤：0=年，1=月，2=日
-    uint8_t temp_year;          // 临时年份（两位数）
+    uint16_t temp_year;          // 临时年份（两位数）
     uint8_t temp_month;         // 临时月份
     uint8_t temp_day;           // 临时日
     

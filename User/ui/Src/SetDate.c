@@ -25,7 +25,7 @@ uint8_t get_max_days_in_month(u8 year, u8 month)
     else if (month == 2)
     {
         // 判断闰年：能被4整除但不能被100整除，或者能被400整除
-        u16 full_year = year + 2000;
+        u16 full_year = year;
         if ((full_year % 4 == 0 && full_year % 100 != 0) || full_year % 400 == 0)
         {
             return 29;
@@ -96,7 +96,7 @@ void SetDate_key_handler(menu_item_t *item, uint8_t key_event)
     switch (state->set_step)
     {
     case 0: // 年
-      state->temp_year = (state->temp_year + 1) % 100;
+      state->temp_year = (state->temp_year + 1) ;
       // 如果当前日期在新年份的2月29日后，且新年份不是闰年，调整日期
       if (state->temp_month == 2 && state->temp_day == 29)
       {
@@ -136,7 +136,7 @@ void SetDate_key_handler(menu_item_t *item, uint8_t key_event)
     switch (state->set_step)
     {
     case 0: // 年
-      state->temp_year = (state->temp_year == 0) ? 99 : state->temp_year - 1;
+      state->temp_year = (state->temp_year == 2000) ? 2099 : state->temp_year - 1;
       // 如果当前日期在新年份的2月29日后，且新年份不是闰年，调整日期
       if (state->temp_month == 2 && state->temp_day == 29)
       {
@@ -173,7 +173,7 @@ void SetDate_key_handler(menu_item_t *item, uint8_t key_event)
 
   case MENU_EVENT_KEY_SELECT:
     // KEY2 - 确认保存并返回
-    RTC_SetDate_Manual(s_SetDate_state.temp_year + 2000, s_SetDate_state.temp_month, s_SetDate_state.temp_day);
+    RTC_SetDate_Manual(s_SetDate_state.temp_year, s_SetDate_state.temp_month, s_SetDate_state.temp_day);
     menu_back_to_parent();
     break;
 
@@ -228,6 +228,7 @@ void SetDate_on_enter(menu_item_t *item)
   
   // 获取当前RTC日期
   MyRTC_ReadTime();
+  printf("year:%d",RTC_data.year);
   s_SetDate_state.temp_year = RTC_data.year;
   s_SetDate_state.temp_month = RTC_data.mon;
   s_SetDate_state.temp_day = RTC_data.day;
@@ -256,24 +257,23 @@ static void SetDate_display_info(void)
   {
   case 0: // 设置年
     OLED_Clear_Line(1);
-    OLED_Printf_Line(1, "  [%04d]/%02d/%02d", s_SetDate_state.temp_year + 2000, s_SetDate_state.temp_month, s_SetDate_state.temp_day);
+    OLED_Printf_Line_32(0, "[%02d]/%02d/%02d", s_SetDate_state.temp_year-2000, s_SetDate_state.temp_month, s_SetDate_state.temp_day);
     OLED_Clear_Line(2);
     OLED_Printf_Line(2, "     Set Year");
     break;
   case 1: // 设置月
     OLED_Clear_Line(1);
-    OLED_Printf_Line(1, "   %04d:[%02d]/%02d", s_SetDate_state.temp_year + 2000, s_SetDate_state.temp_month, s_SetDate_state.temp_day);
+    OLED_Printf_Line_32(0, "%02d/[%02d]/%02d", s_SetDate_state.temp_year-2000, s_SetDate_state.temp_month, s_SetDate_state.temp_day);
     OLED_Clear_Line(2);
     OLED_Printf_Line(2, "    Set Month");
     break;
   case 2: // 设置日
     OLED_Clear_Line(1);
-    OLED_Printf_Line(1, "   %04d/%02d:[%02d]", s_SetDate_state.temp_year + 2000, s_SetDate_state.temp_month, s_SetDate_state.temp_day);
+    OLED_Printf_Line_32(0, "%02d/%02d/[%02d]", s_SetDate_state.temp_year-2000, s_SetDate_state.temp_month, s_SetDate_state.temp_day);
     OLED_Clear_Line(2);
     OLED_Printf_Line(2, "      Set Day");
     break;
   }
 
-  OLED_Printf_Line(0, "   SET DATE");
   OLED_Printf_Line(3, "KEY0:+ KEY1:- KEY2:OK");
 }
