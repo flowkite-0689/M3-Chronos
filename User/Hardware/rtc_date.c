@@ -139,11 +139,30 @@ static void SecondsToDateTime(uint32_t seconds,
 
 #define LSE_TIMEOUT_S   5  // 5秒超时
 #define SYSCLK_FREQ_HZ  72000000
+uint8_t RTC_WaitForSynchro_Debug(void)
+{
+    uint32_t timeout = 0;
+    printf("[RTC] Clear RSF flag...\n");
+    RTC->CRL &= (uint16_t)~RTC_FLAG_RSF; // 清除 RSF
 
-
+    while ((RTC->CRL & RTC_FLAG_RSF) == (uint16_t)RESET)
+    {
+        Delay_ms(1);
+        if (++timeout > 5000) {
+            printf("[RTC ERROR] RSF timeout! CRL=0x%04X\n", RTC->CRL);
+            printf("Check: 1. PC14/PC15 IN_FLOATING? 2. VBAT powered? 3. LSE crystal?\n");
+            return 0;
+        }
+        
+    }
+    printf("\n[RTC OK] RSF set! CRL=0x%04X\n", RTC->CRL);
+    return 1;
+}
 // 初始化 RTC（LSE 为主，失败回退 LSI）
 void MyRTC_Init(void)
 {
+
+ 
     printf("MyRTC init...\n");
     
     RCC_APB1PeriphClockCmd(RCC_APB1Periph_PWR | RCC_APB1Periph_BKP, ENABLE);
@@ -152,11 +171,15 @@ void MyRTC_Init(void)
     if (BKP_ReadBackupRegister(BKP_DR1) != 0xA5A5) {
         printf("First RTC config. Trying LSE...\n");
 
+//  用·LSI
+        // goto USE_LSI;
         // ==== 尝试 LSE ====
         RCC_LSEConfig(RCC_LSE_ON);
         uint32_t timeout = 0;
+        printf("RCC_LSEConfig(RCC_LSE_ON);");
         while (RCC_GetFlagStatus(RCC_FLAG_LSERDY) != SET) {
             Delay_s(1);
+            printf("%d",timeout);
             OLED_Printf_Line(0,"LSE time out : %d",(5-timeout));
             OLED_DrawProgressBar(0,32,128,10,timeout,0,LSE_TIMEOUT_S,1,1,0);
             OLED_Refresh_Dirty();
@@ -166,12 +189,21 @@ void MyRTC_Init(void)
                 goto USE_LSI;
             }
         }
-
+        printf("flag 1");
         RCC_RTCCLKConfig(RCC_RTCCLKSource_LSE);
         RCC_RTCCLKCmd(ENABLE);
-        RTC_WaitForSynchro();
+        printf(" RTC_WaitForSynchro");
+        OLED_Printf_Line(1,"wait for Synchro...");
+        OLED_Refresh_Dirty();
+        if (!RTC_WaitForSynchro_Debug())
+        {
+            goto USE_LSI;
+        }
+        
+        printf(" RTC_WaitForLastTask");
         RTC_WaitForLastTask();
 
+        printf("flag 2");
         RTC_SetPrescaler(32767); // 32768 - 1 → 1Hz
         RTC_WaitForLastTask();
 

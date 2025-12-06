@@ -40,13 +40,6 @@ typedef enum {
 menu_item_t* main_menu_init(void);
 
 /**
- * @brief 获取星期名称
- * @param weekday 星期数字 1-7，1=星期一
- * @return 星期名称字符串
- */
-const char* get_weekday_name(uint8_t weekday);
-
-/**
  * @brief 主菜单进入回调
  * @param item 菜单项
  */
@@ -57,12 +50,5 @@ void main_menu_on_enter(menu_item_t* item);
  * @param item 菜单项
  */
 void main_menu_on_exit(menu_item_t* item);
-
-/**
- * @brief 主菜单按键处理
- * @param item 菜单项
- * @param key_event 按键事件
- */
-void main_menu_key_handler(menu_item_t* item, uint8_t key_event);
 
 #endif // __MAIN_MENU_H

@@ -7,7 +7,11 @@
  */
 
 #include "main_menu.h"
+//+++++++++++++++++++++++=
+//页面
+//++++++++++++++++++++++++=
 #include "TandH.h"
+#include "setting_menu.h"
 // ==================================
 // 图标数组
 // ==================================
@@ -75,6 +79,16 @@ menu_item_t* main_menu_init(void)
                     menu_add_child(menu_item, TandH_page);
                 }
             }
+            if (i == 1)
+            {
+                menu_item_t* setting_menu =setting_menu_init();
+                if (setting_menu != NULL)
+                {
+                    menu_add_child(menu_item, setting_menu);
+                }
+                
+            }
+            
             
             // 添加到主菜单
             menu_add_child(main_menu, menu_item);
