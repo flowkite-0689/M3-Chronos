@@ -13,6 +13,8 @@
 #include "TandH.h"
 #include "setting_menu.h"
 #include "Stopwatch.h"
+
+#include "alarm_menu.h"
 // ==================================
 // 图标数组
 // ==================================
@@ -95,6 +97,15 @@ menu_item_t* main_menu_init(void)
                 if (Stopwatch_page != NULL)
                 {
                     menu_add_child(menu_item, Stopwatch_page);
+                }
+            }
+            
+            if (i == 4)
+            {
+                  menu_item_t* alarm_menu =alarm_menu_init();
+                if (alarm_menu != NULL)
+                {
+                    menu_add_child(menu_item, alarm_menu);
                 }
             }
             
