@@ -481,12 +481,21 @@ int8_t menu_back_to_parent(void)
     
     // 返回父菜单
     g_menu_sys.current_menu = parent;
-    g_menu_sys.need_refresh = 1;
+    
+
+    //根据父菜单类型设置布局
+    menu_set_layout_for_type(parent->type);
     
     // 重置分页信息
     g_menu_sys.current_page = 0;
     menu_update_page_info(parent);
     
+
+    // 刷新显示
+    g_menu_sys.need_refresh = 1;
+
+
+    printf("back to ->  %s\n",parent->name);
     // 调用父菜单的进入回调
     if (parent->on_enter) {
         parent->on_enter(parent);
@@ -542,7 +551,7 @@ int8_t menu_enter_selected(void)
     // 如果有子菜单，进入子菜单
     if (selected->child_count > 0) {
         
-        if(menu->type == MENU_TYPE_HORIZONTAL_ICON){
+        if(menu->type == MENU_TYPE_HORIZONTAL_ICON||menu->type == MENU_TYPE_VERTICAL_LIST){
         // 进入第一个子菜单
 
         menu_item_t *child_menu = &selected->children[0];
