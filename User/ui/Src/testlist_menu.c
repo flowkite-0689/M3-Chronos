@@ -1,5 +1,7 @@
 #include "testlist_menu.h"
 
+
+#include "air_level.h"
 // 引用全局菜单系统变量
 extern menu_system_t g_menu_sys;
 
@@ -37,7 +39,13 @@ menu_item_t *testlist_menu_init(void)
                               testlist_menu_on_exit,
                               NULL,  // on_select 暂时设为NULL，因为没有对应的子页面
                               NULL); // on_key 使用默认的按键处理
-                menu_add_child(testlist_menu, menu_item);               
+                menu_add_child(testlist_menu, menu_item);  
+                   if (i == TESTLIST_MENU_AIR_LEVEL) {
+          menu_item_t* air_level_page = air_level_init();
+          if (air_level_page != NULL) {
+              menu_add_child(menu_item, air_level_page);
+          }
+      }             
     }
   }
   

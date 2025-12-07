@@ -24,7 +24,6 @@ static void menu_update_page_info(menu_item_t *menu);
 static void menu_item_deselect_all(menu_item_t *menu);
 static void menu_item_update_selection(menu_item_t *menu, uint8_t new_index);
 static void menu_set_layout_for_type(menu_type_t type);
-static void menu_set_layout_for_type(menu_type_t type);
 
 // ==================================
 // 菜单系统初始化
