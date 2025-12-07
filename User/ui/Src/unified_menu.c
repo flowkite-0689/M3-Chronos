@@ -395,6 +395,7 @@ int8_t menu_handle_vertical_key(menu_item_t *menu, uint8_t key_event)
             } else {
                 menu->selected_child--;
             }
+             printf("selected : %d\n",menu->selected_child);
             // 更新分页信息
             menu_update_page_info(menu);
             g_menu_sys.need_refresh = 1;
@@ -403,6 +404,7 @@ int8_t menu_handle_vertical_key(menu_item_t *menu, uint8_t key_event)
         case MENU_EVENT_KEY_DOWN:
             // 下一个选项（循环选择）
             menu->selected_child = (menu->selected_child + 1) % menu->child_count;
+            printf("selected : %d\n",menu->selected_child);
             // 更新分页信息
             menu_update_page_info(menu);
             g_menu_sys.need_refresh = 1;
@@ -542,6 +544,9 @@ int8_t menu_enter_selected(void)
     menu_item_t *menu = g_menu_sys.current_menu;
     menu_item_t *selected = &menu->children[menu->selected_child];
     
+    printf("menu_enter_selected: current=%s, selected=%s, child_count=%d\n", 
+           menu->name, selected->name, selected->child_count);
+    
     // 调用选中回调
     if (selected->on_select) {
         selected->on_select(selected);
@@ -549,19 +554,18 @@ int8_t menu_enter_selected(void)
     
     // 如果有子菜单，进入子菜单
     if (selected->child_count > 0) {
-        
-        if(menu->type == MENU_TYPE_HORIZONTAL_ICON||menu->type == MENU_TYPE_VERTICAL_LIST){
-        // 进入第一个子菜单
-
-        menu_item_t *child_menu = &selected->children[0];
-        child_menu->parent = g_menu_sys.current_menu;
-        printf("menu_enter_selected\nparent : %s ,\n current : %s \n",child_menu->parent->name,child_menu->name);
-        return menu_enter(child_menu);}else
-        {
-             // 设置子菜单的父菜单为当前菜单
-        selected->parent = g_menu_sys.current_menu;
-        printf("menu_enter_selected\nparent : %s ,\n current : %s \n",selected->parent->name,selected->name);
-        return menu_enter(selected);
+        // 对于横向图标菜单和纵向列表菜单，直接进入第一个子菜单
+        if(menu->type == MENU_TYPE_HORIZONTAL_ICON || menu->type == MENU_TYPE_VERTICAL_LIST){
+            // 进入第一个子菜单
+            menu_item_t *child_menu = &selected->children[0];
+            child_menu->parent = g_menu_sys.current_menu;
+            printf("menu_enter_selected\nparent : %s ,\n current : %s \n",child_menu->parent->name,child_menu->name);
+            return menu_enter(child_menu);
+        } else {
+            // 设置子菜单的父菜单为当前菜单
+            selected->parent = g_menu_sys.current_menu;
+            printf("menu_enter_selected\nparent : %s ,\n current : %s \n",selected->parent->name,selected->name);
+            return menu_enter(selected);
         }
     } else {
         // 没有子菜单，调用进入回调并返回当前索引（兼容原有行为）
