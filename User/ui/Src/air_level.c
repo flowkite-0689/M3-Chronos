@@ -27,12 +27,12 @@ menu_item_t *air_level_init(void)
     s_air_level_state.sensor_ready = 0;
     
     // 初始化传感器
-//    if (MPU_Init() == 0) {
-//        s_air_level_state.sensor_ready = 1;
-//        printf("MPU6050 initialized successfully\r\n");
-//    } else {
+   if (MPU_Init() == 0) {
+       s_air_level_state.sensor_ready = 1;
+       printf("MPU6050 initialized successfully\r\n");
+   } else {
        printf("MPU6050 initialization failed\r\n");
-//    }
+   }
     
     // 创建自定义菜单项
     menu_item_t *air_level_page = MENU_ITEM_CUSTOM("Air Level", air_level_draw_function, &s_air_level_state);
@@ -179,49 +179,49 @@ void air_level_update_data(air_level_state_t *state)
     
     short ax, ay, az;
     
-//    if (MPU_Get_Accelerometer(&ax, &ay, &az) == 0) {
-//        // 计算原始角度
-//        calculate_tilt_angles(ax, ay, az, &state->angle_x, &state->angle_y);
-//        
-//        // 平滑处理角度数据（避免跳动）
-//        const float smoothing_factor = 0.3f;
-//        state->last_angle_x = state->last_angle_x * (1 - smoothing_factor) + state->angle_x * smoothing_factor;
-//        state->last_angle_y = state->last_angle_y * (1 - smoothing_factor) + state->angle_y * smoothing_factor;
-//        
-//        // 确定方向文本
-//        const float trigger_threshold = 20.0f;
-//        const float trend_threshold = 5.0f;
-//        
-//        if (fabsf(state->last_angle_x) > fabsf(state->last_angle_y)) {
-//            // X轴为主要倾斜方向
-//            if (state->last_angle_x < -trigger_threshold) {
-//                strcpy(state->direction_text, "up   ");
-//            } else if (state->last_angle_x > trigger_threshold) {
-//                strcpy(state->direction_text, "down ");
-//            } else if (state->last_angle_x < -trend_threshold) {
-//                strcpy(state->direction_text, "up~   ");
-//            } else if (state->last_angle_x > trend_threshold) {
-//                strcpy(state->direction_text, "down~");
-//            } else {
-//                strcpy(state->direction_text, "flat ");
-//            }
-//            snprintf(state->angle_text, 16, " %.1f^     ", state->last_angle_x);
-//        } else {
-//            // Y轴为主要倾斜方向
-//            if (state->last_angle_y > trigger_threshold) {
-//                strcpy(state->direction_text, "right");
-//            } else if (state->last_angle_y < -trigger_threshold) {
-//                strcpy(state->direction_text, "left  ");
-//            } else if (state->last_angle_y > trend_threshold) {
-//                strcpy(state->direction_text, "right~");
-//            } else if (state->last_angle_y < -trend_threshold) {
-//                strcpy(state->direction_text, "left~  ");
-//            } else {
-//                strcpy(state->direction_text, "flat   ");
-//            }
-//            snprintf(state->angle_text, 16, " %.1f^     ", state->last_angle_y);
-//        }
-//    }
+   if (MPU_Get_Accelerometer(&ax, &ay, &az) == 0) {
+       // 计算原始角度
+       calculate_tilt_angles(ax, ay, az, &state->angle_x, &state->angle_y);
+       
+       // 平滑处理角度数据（避免跳动）
+       const float smoothing_factor = 0.3f;
+       state->last_angle_x = state->last_angle_x * (1 - smoothing_factor) + state->angle_x * smoothing_factor;
+       state->last_angle_y = state->last_angle_y * (1 - smoothing_factor) + state->angle_y * smoothing_factor;
+       
+       // 确定方向文本
+       const float trigger_threshold = 20.0f;
+       const float trend_threshold = 5.0f;
+       
+       if (fabsf(state->last_angle_x) > fabsf(state->last_angle_y)) {
+           // X轴为主要倾斜方向
+           if (state->last_angle_x < -trigger_threshold) {
+               strcpy(state->direction_text, "up   ");
+           } else if (state->last_angle_x > trigger_threshold) {
+               strcpy(state->direction_text, "down ");
+           } else if (state->last_angle_x < -trend_threshold) {
+               strcpy(state->direction_text, "up~   ");
+           } else if (state->last_angle_x > trend_threshold) {
+               strcpy(state->direction_text, "down~");
+           } else {
+               strcpy(state->direction_text, "flat ");
+           }
+           snprintf(state->angle_text, 16, " %.1f^     ", state->last_angle_x);
+       } else {
+           // Y轴为主要倾斜方向
+           if (state->last_angle_y > trigger_threshold) {
+               strcpy(state->direction_text, "right");
+           } else if (state->last_angle_y < -trigger_threshold) {
+               strcpy(state->direction_text, "left  ");
+           } else if (state->last_angle_y > trend_threshold) {
+               strcpy(state->direction_text, "right~");
+           } else if (state->last_angle_y < -trend_threshold) {
+               strcpy(state->direction_text, "left~  ");
+           } else {
+               strcpy(state->direction_text, "flat   ");
+           }
+           snprintf(state->angle_text, 16, " %.1f^     ", state->last_angle_y);
+       }
+   }
 }
 
 // ==================================
@@ -253,11 +253,11 @@ void air_level_display_info(air_level_state_t *state)
     // 绘制水平指示器
     // 垂直进度条显示Y轴倾斜（左右倾斜）
     int y_angle_scaled = (int)(state->last_angle_y * 10);
-    OLED_DrawProgressBar(96, 0, 2, 64, y_angle_scaled, -900, 900, 0, 1, 0);
+    OLED_DrawProgressBar(96, 0, 2, 64, -y_angle_scaled, -900, 900, 0, 1, 0);
     
     // 水平进度条显示X轴倾斜（前后倾斜）
     int x_angle_scaled = (int)(state->last_angle_x * 10);
-    OLED_DrawProgressBar(64, 32, 64, 2, x_angle_scaled, -900, 900, 0, 1, 0);
+    OLED_DrawProgressBar(64, 32, 64, 2, -x_angle_scaled, -900, 900, 0, 1, 0);
 }
 
 /**

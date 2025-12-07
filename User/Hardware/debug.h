@@ -6,5 +6,6 @@
 
 void debug_init(void);
 void Usart1_Send_Sring(char *string);
+void Usart1_send_bytes(uint8_t *buf, uint16_t len);
 
 #endif

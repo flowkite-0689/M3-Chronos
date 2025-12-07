@@ -80,3 +80,11 @@ void delay_us_no_irq(uint32_t us)
 {
   TIM2_Delay_us(us);
 }
+
+void delay_ms(uint32_t xms)
+{
+  while(xms--)
+	{
+		Delay_us(1000);
+	}
+}

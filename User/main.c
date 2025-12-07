@@ -12,6 +12,8 @@
 #include "queue.h"
 #include "unified_menu.h"
 #include "index.h"
+#include "MPU6050_hardware_i2c.h"
+
 
 // 创建队列来存储按键事件
 QueueHandle_t keyQueue;     // 按键队列
@@ -37,6 +39,24 @@ int main(void)
     Beep_Init();
     // RTC_SetTime_Manual(15,22,0);
 
+    	MPU_Init();
+
+	// ??MPU6050??ID
+	u8 device_id;
+	MPU_Read_Byte(MPU_ADDR, MPU_DEVICE_ID_REG, &device_id);
+	printf("MPU6050 Device ID: 0x%02X (Expected: 0x68)\r\n", device_id);
+
+	if (device_id != MPU_ADDR)
+	{
+		printf("MPU6050 Device ID Mismatch!\r\n");
+		OLED_Printf_Line(1, "MPU ID Error!");
+		OLED_Refresh();
+		Delay_ms(2000);
+	}
+	else
+	{
+		printf("MPU6050 Device ID OK\r\n");
+	}
     // 系统初始化成功
     printf("wait for sys OK...\n");
     OLED_Clear();

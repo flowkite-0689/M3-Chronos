@@ -91,3 +91,18 @@ int fputc(int ch, FILE *f)
 
     return (ch);
 }
+
+// USART1发送字节数组函数
+void Usart1_send_bytes(uint8_t *buf, uint16_t len)
+{
+    uint16_t i;
+    for(i = 0; i < len; i++) {
+        /* 发送一个字节数据到串口 */
+        USART_SendData(USART1, buf[i]);
+        
+        /* 等待发送寄存器空 */
+        while(USART_GetFlagStatus(USART1, USART_FLAG_TXE) == RESET);
+    }
+    /* 等待发送完成 */
+    while(USART_GetFlagStatus(USART1, USART_FLAG_TC) == RESET);
+}
