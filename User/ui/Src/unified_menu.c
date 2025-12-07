@@ -167,6 +167,115 @@ int8_t menu_item_set_callbacks(menu_item_t *item,
     return 0;
 }
 
+int8_t menu_remove_child(menu_item_t *parent, menu_item_t *child)
+{
+    if (parent == NULL || child == NULL || parent->child_count == 0) {
+        return -1;
+    }
+    
+    // 查找子菜单项在数组中的索引
+    int8_t child_index = -1;
+    for (uint8_t i = 0; i < parent->child_count; i++) {
+        if (&parent->children[i] == child) {
+            child_index = i;
+            break;
+        }
+    }
+    
+    if (child_index == -1) {
+        return -2; // 未找到子菜单项
+    }
+    
+    // 如果子菜单项是当前选中的项，需要调整选中索引
+    if (parent->selected_child == child_index) {
+        if (parent->child_count > 1) {
+            parent->selected_child = (child_index == 0) ? 0 : parent->selected_child - 1;
+        } else {
+            parent->selected_child = 0;
+        }
+    }
+    
+    // 创建新的子菜单数组（大小减1）
+    menu_item_t *new_children = NULL;
+    if (parent->child_count > 1) {
+        new_children = (menu_item_t*)pvPortMalloc(sizeof(menu_item_t) * (parent->child_count - 1));
+        if (new_children == NULL) {
+            return -3; // 内存分配失败
+        }
+        
+        // 复制除目标子项外的其他子项
+        uint8_t new_index = 0;
+        for (uint8_t i = 0; i < parent->child_count; i++) {
+            if (i != child_index) {
+                new_children[new_index] = parent->children[i];
+                new_index++;
+            }
+        }
+    }
+    
+    // 释放旧的子菜单数组
+    vPortFree(parent->children);
+    
+    // 更新父菜单的子菜单数组和计数
+    parent->children = new_children;
+    parent->child_count--;
+    
+    // 调整selected_child索引（如果删除的是选中项之前的项）
+    if (child_index < parent->selected_child) {
+        parent->selected_child--;
+    }
+    
+    return 0;
+}
+
+int8_t menu_item_delete(menu_item_t *menu)
+{
+    if (menu == NULL) {
+        return -1;
+    }
+    
+    // 安全检查：不能删除当前正在显示的菜单
+    if (menu == g_menu_sys.current_menu || menu == g_menu_sys.root_menu) {
+        return -2; // 不能删除当前活动菜单或根菜单
+    }
+    printf("delete : %s -> start\n",menu->name);
+    // 递归删除所有子菜单
+    if (menu->child_count > 0 && menu->children != NULL) {
+        for (int8_t i = menu->child_count - 1; i >= 0; i--) {
+            menu_item_delete(&menu->children[i]);
+        }
+    }
+    
+    // 从父菜单中移除当前菜单项
+    if (menu->parent != NULL) {
+        menu_remove_child(menu->parent, menu);
+    }
+    
+    // 释放自定义上下文（如果存在）
+    if (menu->context != NULL) {
+        vPortFree(menu->context);
+        menu->context = NULL;
+    }
+    
+    // 如果此菜单有子菜单数组，释放子菜单数组内存
+    if (menu->children != NULL) {
+        vPortFree(menu->children);
+        menu->children = NULL;
+        menu->child_count = 0;
+    }
+    
+    // 重置回调函数指针
+    menu->on_enter = NULL;
+    menu->on_exit = NULL;
+    menu->on_select = NULL;
+    menu->on_key = NULL;
+    
+    // 释放菜单项本身
+    vPortFree(menu);
+    printf("delete : %s <- end\n\n",menu->name);
+    return 0;
+}
+
 // ==================================
 // 菜单显示实现
 // ==================================

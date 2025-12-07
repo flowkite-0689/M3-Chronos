@@ -232,6 +232,21 @@ int8_t menu_item_set_callbacks(menu_item_t *item,
                                void (*on_select)(menu_item_t*),
                                void (*on_key)(menu_item_t*, uint8_t));
 
+/**
+ * @brief 删除指定的菜单项，并释放内存
+ * @param menu 要删除的菜单项指针
+ * @return 0-成功，其他-失败
+ */
+int8_t menu_item_delete(menu_item_t *menu);
+
+/**
+ * @brief 从父菜单中移除指定的子菜单项
+ * @param parent 父菜单项
+ * @param child 要移除的子菜单项
+ * @return 0-成功，其他-失败
+ */
+int8_t menu_remove_child(menu_item_t *parent, menu_item_t *child);
+
 // ==================================
 // 菜单显示API
 // ==================================
