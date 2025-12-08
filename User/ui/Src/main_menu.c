@@ -176,7 +176,7 @@ void main_menu_on_enter(menu_item_t* item)
     
     // 动态绑定所有需要子菜单的菜单项
     for (uint8_t i = 0; i < item->child_count; i++) {
-        menu_item_t *menu_item = &item->children[i];
+        menu_item_t *menu_item = item->children[i];
         
         // 通过菜单名称匹配来确定索引
         int menu_index = -1;
@@ -200,37 +200,6 @@ void main_menu_on_enter(menu_item_t* item)
     printf("Main menu binding completed, child_count: %d\r\n", item->child_count);
 }
 
-// ==================================
-// 辅助函数：清理子菜单
-// ==================================
-
-static void main_menu_cleanup_child_menu(menu_item_t *parent_item)
-{
-    if (parent_item == NULL || parent_item->context == NULL) {
-        return;
-    }
-    
-    menu_binding_status_t *binding_status = (menu_binding_status_t*)parent_item->context;
-    
-    // 检查是否有绑定的子菜单
-    if (binding_status->is_bound && parent_item->child_count > 0) {
-        printf("cleanup : %s -> start\r\n", parent_item->name);
-        
-        // 只清理子菜单数组，不删除菜单项本身
-        if (parent_item->children != NULL) {
-            // 释放子菜单数组内存（子菜单项本身是通过pvPortMalloc分配的）
-            vPortFree(parent_item->children);
-            parent_item->children = NULL;
-            parent_item->child_count = 0;
-        }
-        
-        // 重置绑定状态
-        binding_status->is_bound = 0; 
-        
-        printf("cleanup : %s <- end\r\n", parent_item->name);
-        printf("Cleaned up child menus for %s\r\n", parent_item->name);
-    }
-}
 
 void main_menu_on_exit(menu_item_t* item)
 {
@@ -248,11 +217,11 @@ void main_menu_on_exit(menu_item_t* item)
     for (uint8_t i = 0; i < item->child_count; i++) {
         // 跳过当前选中的菜单项
         if (i == selected_index) {
-            printf("Skipping cleanup for selected menu: %s\r\n", item->children[i].name);
+            printf("Skipping cleanup for selected menu: %s\r\n", item->children[i]->name);
             continue;
         }
         
-        menu_item_t *menu_item = &item->children[i];
+        menu_item_t *menu_item = item->children[i];
         
         // 通过菜单名称匹配来确定索引
         int menu_index = -1;
@@ -269,7 +238,7 @@ void main_menu_on_exit(menu_item_t* item)
                 menu_index == MAIN_MENU_TEMPHUMI || menu_index == MAIN_MENU_ALARM || 
                 menu_index == MAIN_MENU_TEST) {
                     
-                printf("-----------------------------------------\n\n%s will be delate\n",menu_item->children[0].name);
+                printf("-----------------------------------------\n\n%s will be delate\n",menu_item->children[0]->name);
             printf("menu_item->name:%s\n",menu_item->name);
 					// menu_item_delete(&(menu_item->children[0]));				
             
@@ -278,5 +247,5 @@ void main_menu_on_exit(menu_item_t* item)
     }
     
     printf("Main menu cleanup completed, kept selected menu: %s\r\n", 
-           item->children[selected_index].name);
+           item->children[selected_index]->name);
 }

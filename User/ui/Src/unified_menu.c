@@ -110,28 +110,36 @@ int8_t menu_add_child(menu_item_t *parent, menu_item_t *child)
     if (parent == NULL || child == NULL) {
         return -1;
     }
-    
-    // 使用pvPortMalloc分配新内存，然后复制原有内容
-    menu_item_t *new_children = (menu_item_t*)pvPortMalloc(
-        sizeof(menu_item_t) * (parent->child_count + 1)
+
+    // 不允许重复添加同一 child（防循环/重复）
+    for (uint8_t i = 0; i < parent->child_count; i++) {
+        if (parent->children && parent->children[i] == child) {
+            return -3; // already exists
+        }
+    }
+
+    // 分配新的指针数组（多一个 slot）
+    menu_item_t **new_children = (menu_item_t **)pvPortMalloc(
+        sizeof(menu_item_t *) * (parent->child_count + 1)
     );
-    
     if (new_children == NULL) {
-        return -2;
+        return -2; // malloc failed
     }
-    
-    // 复制原有的子菜单项
-    if (parent->child_count > 0) {
-        memcpy(new_children, parent->children, sizeof(menu_item_t) * parent->child_count);
-        // 释放原有内存
-        vPortFree(parent->children);
+
+    // 拷贝旧指针（如果有）
+    if (parent->child_count > 0 && parent->children != NULL) {
+        memcpy(new_children, parent->children, sizeof(menu_item_t *) * parent->child_count);
+        vPortFree(parent->children); // 释放旧数组
     }
-    
+
+    // 添加新 child 指针到末尾
+    new_children[parent->child_count] = child;  // ←←← 存的是指针！不是结构体！
+
+    // 更新 parent
     parent->children = new_children;
-    parent->children[parent->child_count] = *child;
-    child->parent = parent;
     parent->child_count++;
-    
+    child->parent = parent;  // ✅ 关键：建立反向链接
+
     return 0;
 }
 
@@ -169,93 +177,109 @@ int8_t menu_item_set_callbacks(menu_item_t *item,
 
 int8_t menu_remove_child(menu_item_t *parent, menu_item_t *child)
 {
-    if (parent == NULL || child == NULL || parent->child_count == 0) {
+    if (parent == NULL || child == NULL || parent->child_count == 0 || parent->children == NULL) {
         return -1;
     }
-    
-    // 查找子菜单项在数组中的索引
-    int8_t child_index = -1;
+
+    // 查找 child 指针在 children 数组中的位置（指针比较！）
+    int8_t index = -1;
     for (uint8_t i = 0; i < parent->child_count; i++) {
-        if (&parent->children[i] == child) {
-            child_index = i;
+        if (parent->children[i] == child) {  // ✅ 正确：指针比较，无 &
+            index = i;
             break;
         }
     }
-    
-    if (child_index == -1) {
-        return -2; // 未找到子菜单项
-    }
-    
-    // 如果子菜单项是当前选中的项，需要调整选中索引
-    if (parent->selected_child == child_index) {
+    if (index == -1) return -2; // 未找到
+
+    // 调整 selected_child
+    if (parent->selected_child == index) {
         if (parent->child_count > 1) {
-            parent->selected_child = (child_index == 0) ? 0 : parent->selected_child - 1;
+            parent->selected_child = (index == 0) ? 0 : index - 1;
         } else {
             parent->selected_child = 0;
         }
+    } else if (parent->selected_child > index) {
+        parent->selected_child--;
     }
-    
-    // 创建新的子菜单数组（大小减1）
-    menu_item_t *new_children = NULL;
-    if (parent->child_count > 1) {
-        new_children = (menu_item_t*)pvPortMalloc(sizeof(menu_item_t) * (parent->child_count - 1));
-        if (new_children == NULL) {
-            return -3; // 内存分配失败
-        }
-        
-        // 复制除目标子项外的其他子项
-        uint8_t new_index = 0;
+
+    // 重新分配 children 指针数组（少一个）
+    menu_item_t **new_children = NULL;
+    uint8_t new_count = parent->child_count - 1;
+
+    if (new_count > 0) {
+        new_children = (menu_item_t**)pvPortMalloc(sizeof(menu_item_t*) * new_count);
+        if (new_children == NULL) return -3;
+
+        uint8_t j = 0;
         for (uint8_t i = 0; i < parent->child_count; i++) {
-            if (i != child_index) {
-                new_children[new_index] = parent->children[i];
-                new_index++;
+            if (i != index) {
+                new_children[j++] = parent->children[i]; // 拷贝指针
             }
         }
     }
-    
-    // 释放旧的子菜单数组
+
+    // 释放旧数组，更新
     vPortFree(parent->children);
-    
-    // 更新父菜单的子菜单数组和计数
     parent->children = new_children;
-    parent->child_count--;
-    
-    // 调整selected_child索引（如果删除的是选中项之前的项）
-    if (child_index < parent->selected_child) {
-        parent->selected_child--;
-    }
-    
+    parent->child_count = new_count;
+
+    // 清除 child 的 parent 指针（防止野指针）
+    child->parent = NULL;
+
     return 0;
 }
-
-int8_t menu_item_delete(menu_item_t *menu)
+int8_t menu_item_delete(menu_item_t *item)
 {
-    if (menu == NULL) {
-        return -1;
+    if (item == NULL) return -1;
+
+    // ❌ 禁止删除当前菜单或根菜单（除非先切换）
+    if (item == g_menu_sys.current_menu || item == g_menu_sys.root_menu) {
+        return -2;
     }
-    
-    // 安全检查：不能删除当前正在显示的菜单
-    if (menu == g_menu_sys.current_menu || menu == g_menu_sys.root_menu) {
-        return -2; // 不能删除当前活动菜单或根菜单
+
+    // 🔐 获取互斥锁（防 display 访问）
+    if (g_menu_sys.display_mutex) {
+        if (xSemaphoreTake(g_menu_sys.display_mutex, pdMS_TO_TICKS(100)) != pdTRUE) {
+            return -5;
+        }
     }
-    
-    printf("delete : %s -> start (child_count=%d)\n", menu->name, menu->child_count);
-    
-    // 极简方案：先递归删除子菜单，再释放children数组，最后释放自身
-    // 但是在每次vPortFree前都检查指针有效性
-    
-    // if (menu->child_count > 0 && menu->children != NULL) {
-    //     // 递归删除所有子菜单
-    //     for (int8_t i = menu->child_count - 1; i >= 0; i--) {
-    //         printf("delete : %s, deleting child %d\n", menu->name, i);
-    //         int8_t result = menu_item_delete(&menu->children[i]);
-    //         printf("delete : %s, child %d result=%d\n", menu->name, i, result);
-    //     }
-    // }
-    
-   
-        vPortFree(menu);
-    
+
+    printf("[MENU] Deleting: %s (children: %d)\n", item->name, item->child_count);
+
+    // 🌲 递归删除所有子项（从后往前，避免索引变化影响）
+    for (int8_t i = item->child_count - 1; i >= 0; i--) {
+        menu_item_t *child = item->children[i];  // ✅ 直接取指针
+        if (child) {
+            // 先断链（从父节点移除）
+            if (child->parent == item) {
+                menu_remove_child(item, child); // 安全移除
+            }
+            // 再递归删除（此时 child->parent == NULL）
+            menu_item_delete(child);
+        }
+    }
+
+    // 🧹 清理自身
+    if (item->children) {
+        vPortFree(item->children);
+        item->children = NULL;
+        item->child_count = 0;
+    }
+
+    // 🔔 可选回调（谨慎！）
+    // if (item->on_exit) item->on_exit(item);
+
+    // 🗑️ 释放自身
+    vPortFree(item);
+
+    // 📢 触发刷新
+    g_menu_sys.need_refresh = 1;
+
+    if (g_menu_sys.display_mutex) {
+        xSemaphoreGive(g_menu_sys.display_mutex);
+    }
+
+    printf("[MENU] Deleted successfully.\n");
     return 0;
 }
 
@@ -308,21 +332,21 @@ void menu_display_horizontal(menu_item_t *menu)
     uint8_t right_index = (center_index + 1) % menu->child_count;
     
     // 显示左侧图标（淡化）
-    if (menu->children[left_index].content.icon.icon_data) {
+    if (menu->children[left_index]->content.icon.icon_data) {
         OLED_ShowPicture(0, 16, 32, 32, 
-                        menu->children[left_index].content.icon.icon_data, 1);
+                        menu->children[left_index]->content.icon.icon_data, 1);
     }
     
     // 显示中间图标（清晰）
-    if (menu->children[center_index].content.icon.icon_data) {
+    if (menu->children[center_index]->content.icon.icon_data) {
         OLED_ShowPicture(48, 16, 32, 32, 
-                        menu->children[center_index].content.icon.icon_data, 0);
+                        menu->children[center_index]->content.icon.icon_data, 0);
     }
     
     // 显示右侧图标（淡化）
-    if (menu->children[right_index].content.icon.icon_data) {
+    if (menu->children[right_index]->content.icon.icon_data) {
         OLED_ShowPicture(96, 16, 32, 32, 
-                        menu->children[right_index].content.icon.icon_data, 1);
+                        menu->children[right_index]->content.icon.icon_data, 1);
     }
     
     OLED_Refresh();
@@ -350,7 +374,7 @@ void menu_display_vertical(menu_item_t *menu)
         uint8_t line = i - start_index;
         char arrow = (i == menu->selected_child) ? '>' : ' ';
         
-        OLED_Printf_Line(line, "%c %s", arrow, menu->children[i].content.text.text);
+        OLED_Printf_Line(line, "%c %s", arrow, menu->children[i]->content.text.text);
     }
     
     // 如果本页不足4行，下面几行清空
@@ -634,7 +658,7 @@ int8_t menu_enter_selected(void)
     }
     
     menu_item_t *menu = g_menu_sys.current_menu;
-    menu_item_t *selected = &menu->children[menu->selected_child];
+    menu_item_t *selected = menu->children[menu->selected_child];
     
     printf("menu_enter_selected: current=%s, selected=%s, child_count=%d\n", 
            menu->name, selected->name, selected->child_count);
@@ -649,7 +673,7 @@ int8_t menu_enter_selected(void)
         // 对于横向图标菜单和纵向列表菜单，直接进入第一个子菜单
         if(menu->type == MENU_TYPE_HORIZONTAL_ICON || menu->type == MENU_TYPE_VERTICAL_LIST){
             // 进入第一个子菜单
-            menu_item_t *child_menu = &selected->children[0];
+            menu_item_t *child_menu = selected->children[0];
             child_menu->parent = g_menu_sys.current_menu;
             printf("menu_enter_selected\nparent : %s ,\n current : %s \n",child_menu->parent->name,child_menu->name);
             return menu_enter(child_menu);
@@ -747,7 +771,7 @@ static void menu_item_deselect_all(menu_item_t *menu)
     
     // 取消选中所有子项
     for (uint8_t i = 0; i < menu->child_count; i++) {
-        menu->children[i].is_selected = 0;
+        menu->children[i]->is_selected = 0;
     }
 }
 
@@ -762,7 +786,7 @@ static void menu_item_update_selection(menu_item_t *menu, uint8_t new_index)
     
     // 设置新选中项
     menu->selected_child = new_index;
-    menu->children[new_index].is_selected = 1;
+    menu->children[new_index]->is_selected = 1;
     
     g_menu_sys.need_refresh = 1;
 }

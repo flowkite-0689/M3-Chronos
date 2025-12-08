@@ -85,7 +85,7 @@ typedef struct menu_item {
     
     // 层次关系
     struct menu_item *parent;           // 父菜单
-    struct menu_item *children;         // 子菜单数组
+    struct menu_item **children;         // 子菜单数组
     uint8_t child_count;                 // 子菜单数量
     uint8_t selected_child;              // 选中的子项索引
     
