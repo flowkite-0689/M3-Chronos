@@ -171,15 +171,7 @@ static void Alarm_Task(void *pvParameters)
     // 初始化RTC
     MyRTC_Init();
     printf("RTC initialized for alarm checking\n");
-    
-    // 创建闹钟提醒页面
-    menu_item_t *alarm_alert_page = alarm_alert_init();
-    if (alarm_alert_page == NULL) {
-        printf("Alarm Alert page initialization failed\n");
-        vTaskDelete(NULL);
-        return;
-    }
-    
+    RTC_SetTime_Manual(23,59,40);
     const TickType_t delay_1s = pdMS_TO_TICKS(1000); // 1秒检查一次
     
     while (1) {
@@ -189,15 +181,17 @@ static void Alarm_Task(void *pvParameters)
         if (triggered_alarm_index >= 0) {
             printf("Alarm triggered! Index: %d\n", triggered_alarm_index);
             
-            // 触发闹钟提醒
-            if (alarm_alert_trigger((uint8_t)triggered_alarm_index) == 0) {
-                // 直接进入闹钟提醒页面
-                printf("Switching to alarm alert page...\n");
-                menu_enter(alarm_alert_page);
-                
-                // 等待闹钟提醒页面处理完成
-                // 等待一段时间让用户有机会关闭闹钟
-                vTaskDelay(pdMS_TO_TICKS(500));
+            // 创建闹钟事件并发送到菜单任务
+            menu_event_t alarm_event;
+            alarm_event.type = MENU_EVENT_ALARM;
+            alarm_event.timestamp = xTaskGetTickCount();
+            alarm_event.param = (uint8_t)triggered_alarm_index;
+            
+            // 发送闹钟事件到菜单任务的事件队列
+            if (xQueueSend(g_menu_sys.event_queue, &alarm_event, 0) == pdPASS) {
+                printf("Alarm event sent to menu task successfully\n");
+            } else {
+                printf("Failed to send alarm event to menu task\n");
             }
         }
         

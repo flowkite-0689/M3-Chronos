@@ -66,11 +66,14 @@ void alarm_alert_on_enter(menu_item_t *item)
     // 分配状态数据结构
     alarm_alert_state_t *state = &g_alarm_alert_state;
     
-    // 初始化状态数据
-    alarm_alert_init_state(state);
-    
     // 设置到菜单项上下文
     item->content.custom.draw_context = state;
+    
+    // 如果闹钟提醒已经激活，保持状态不变
+    if (!state->active) {
+        // 只有当闹钟提醒未激活时才重新初始化
+        alarm_alert_init_state(state);
+    }
     
     // 清屏并标记需要刷新
     OLED_Clear();
@@ -91,7 +94,7 @@ void alarm_alert_on_exit(menu_item_t *item)
     }
     
     // 停止蜂鸣器
-    Beep_OFF();
+   state->isRaing = 0;
     
     // 关闭闹钟提醒
     state->active = 0;
@@ -125,10 +128,14 @@ void alarm_alert_key_handler(menu_item_t *item, uint8_t key_event)
             printf("Alarm Alert: Close alarm\r\n");
             
             // 停止蜂鸣器
-            Beep_OFF();
+            state->isRaing = 0;
             
             // 关闭闹钟提醒
             state->active = 0;
+            
+            // 立即清屏，避免绘制冲突
+            OLED_Clear();
+            OLED_Refresh();
             
             // 返回父菜单
             menu_back_to_parent();
@@ -151,11 +158,9 @@ void alarm_alert_draw_function(void *context)
 {
     alarm_alert_state_t *state = (alarm_alert_state_t *)context;
     if (state == NULL || !state->active) {
-        return;
-    }
-    
-    // 检查是否需要刷新
-    if (!state->need_refresh) {
+        // 如果页面不活跃，确保清屏并返回
+        OLED_Clear();
+        OLED_Refresh();
         return;
     }
     
@@ -167,6 +172,15 @@ void alarm_alert_draw_function(void *context)
     
     // 闪烁效果：每秒切换一次
     TickType_t current_time = xTaskGetTickCount();
+    if (current_time - state->last_beep_time >= pdMS_TO_TICKS(500)) {
+        // 每500ms播放一次蜂鸣器
+        if (state->isRaing) {
+            BEEP_Buzz(10);
+        }
+        state->last_beep_time = current_time;
+        state->need_refresh = 1;
+    }
+    
     if (current_time - state->start_time >= pdMS_TO_TICKS(1000)) {
         state->blink_state = !state->blink_state;
         state->start_time = current_time;
@@ -222,16 +236,12 @@ int8_t alarm_alert_trigger(uint8_t alarm_index)
     g_alarm_alert_state.triggered_alarm_index = alarm_index;
     g_alarm_alert_state.need_refresh = 1;
     g_alarm_alert_state.start_time = xTaskGetTickCount();
+    g_alarm_alert_state.last_beep_time = xTaskGetTickCount();
     g_alarm_alert_state.blink_state = 1;
+    g_alarm_alert_state.isRaing = 1;
     
-    // 启动蜂鸣器
-    while (1)
-    {
-        BEEP_Buzz(100);
-        delay_ms(100);
-    }
-    
-     // 频率1000Hz，周期500ms
+    // 播放一次蜂鸣器提示
+    BEEP_Buzz(10);
     
     printf("Alarm Alert triggered for index %d\r\n", alarm_index);
     

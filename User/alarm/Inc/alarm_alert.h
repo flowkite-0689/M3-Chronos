@@ -25,7 +25,10 @@ typedef struct {
     uint8_t triggered_alarm_index;  // 触发的闹钟索引
     uint8_t need_refresh;           // 需要刷新标志
     TickType_t start_time;          // 开始时间
+    TickType_t last_beep_time;      // 上次蜂鸣器时间
     uint8_t blink_state;            // 闪烁状态
+
+    uint8_t isRaing; //是不是在响
 } alarm_alert_state_t;
 
 // ==================================

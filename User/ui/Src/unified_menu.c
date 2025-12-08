@@ -9,12 +9,19 @@
 #include "unified_menu.h"
 #include <string.h>
 #include <stdlib.h>
+#include "../../alarm/Inc/alarm_alert.h"
 
 // ==================================
 // 全局菜单系统实例
 // ==================================
 
 menu_system_t g_menu_sys = {0};
+
+// ==================================
+// 全局闹钟提醒页面
+// ==================================
+
+static menu_item_t *g_alarm_alert_page = NULL;
 
 // ==================================
 // 静态函数声明
@@ -59,6 +66,14 @@ int8_t menu_system_init(void)
     
     // 设置默认布局配置
     g_menu_sys.layout = (menu_layout_config_t)LAYOUT_HORIZONTAL_MAIN();
+    
+    // 预先创建闹钟提醒页面
+    g_alarm_alert_page = alarm_alert_init();
+    if (g_alarm_alert_page == NULL) {
+        printf("Warning: Failed to create alarm alert page\r\n");
+    } else {
+        printf("Alarm alert page created successfully\r\n");
+    }
     
     printf("Menu system initialized successfully\r\n");
     return 0;
@@ -469,7 +484,34 @@ menu_event_t menu_key_to_event(uint8_t key)
 
 int8_t menu_process_event(menu_event_t *event)
 {
-    if (event == NULL || g_menu_sys.current_menu == NULL) {
+    if (event == NULL) {
+        return -1;
+    }
+    
+    // 处理闹钟事件（特殊处理，不需要当前菜单）
+    if (event->type == MENU_EVENT_ALARM) {
+        printf("Processing alarm event, index: %d\n", event->param);
+        
+        // 检查闹钟提醒页面是否已创建
+        if (g_alarm_alert_page == NULL) {
+            printf("Error: Alarm alert page not created\n");
+            return -1;
+        }
+        
+        // 触发闹钟提醒
+        if (alarm_alert_trigger(event->param) == 0) {
+            // 设置闹钟提醒页面的父菜单为当前菜单（如果存在）
+            if (g_menu_sys.current_menu != NULL) {
+                g_alarm_alert_page->parent = g_menu_sys.current_menu;
+            }
+            // 切换到闹钟提醒页面
+            menu_enter(g_alarm_alert_page);
+            printf("Switched to alarm alert page\n");
+        }
+        return 0;
+    }
+    
+    if (g_menu_sys.current_menu == NULL) {
         return -1;
     }
     
