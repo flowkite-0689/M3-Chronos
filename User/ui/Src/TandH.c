@@ -181,7 +181,7 @@ printf("Humi_int: %d, Humi_deci: %d\n", s_TandH_state.humi_int, s_TandH_state.hu
       
      if (temp_tenth-s_TandH_state.last_date_T>=10)
      {
-        s_TandH_state.last_date_T+=5;
+        s_TandH_state.last_date_T+=100;
      }
      
         s_TandH_state.last_date_T++;
