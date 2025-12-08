@@ -20,6 +20,7 @@
 #include <stdlib.h>
 #include <string.h>
 
+#include "alarm_add.h"
 // ==================================
 // 宏定义
 // ==================================
@@ -79,6 +80,7 @@ void alarm_list_display_empty(void);
 void alarm_list_enter_detail(alarm_list_state_t* state, uint8_t alarm_index);
 void alarm_list_exit_detail(alarm_list_state_t* state);
 void alarm_list_process_detail(alarm_list_state_t* state, uint8_t key_event);
+void alarm_list_handle_detail_action(alarm_list_state_t* state);
 
 // 工具函数
 static inline uint8_t alarm_list_need_refresh(alarm_list_state_t* state)

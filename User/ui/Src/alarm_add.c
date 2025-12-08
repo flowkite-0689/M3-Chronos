@@ -80,26 +80,32 @@ void alarm_add_key_handler(menu_item_t *item, uint8_t key_event)
         case MENU_EVENT_KEY_UP:
             // KEY0 - 增加当前设置项的值
             printf("Alarm Add: KEY0 pressed - Increase value\r\n");
-            alarm_add_process_setting(state, key_event);
+            alarm_add_process_setting(state, MENU_EVENT_KEY_UP);
             break;
             
         case MENU_EVENT_KEY_DOWN:
             // KEY1 - 减少当前设置项的值
             printf("Alarm Add: KEY1 pressed - Decrease value\r\n");
-            alarm_add_process_setting(state, key_event);
+            alarm_add_process_setting(state, MENU_EVENT_KEY_DOWN);
             break;
             
         case MENU_EVENT_KEY_SELECT:
-            // KEY2 - 返回上一级
-            printf("Alarm Add: KEY2 pressed - Return\r\n");
-            menu_back_to_parent();
+            // KEY2 - 确认/保存闹钟
+            printf("Alarm Add: KEY2 pressed - Save alarm\r\n");
+            if (state) {
+                alarm_add_save_alarm(state);
+            }
             break;
             
         case MENU_EVENT_KEY_ENTER:
-            // KEY3 - 确认/保存闹钟
-            printf("Alarm Add: KEY3 pressed - Save alarm\r\n");
+            // KEY3 - 下一个设置项
+            printf("Alarm Add: KEY3 pressed - Next step\r\n");
             if (state) {
-                alarm_add_save_alarm(state);
+                state->set_step++;
+                if (state->set_step >= SET_STEP_COUNT) {
+                    state->set_step = 0; // 循环回到第一项
+                }
+                state->need_refresh = 1;
             }
             break;
             
@@ -239,49 +245,48 @@ void alarm_add_display_setting(alarm_add_state_t *state)
         return;
     }
     
-    // 更新显示文本
-    snprintf(state->time_text, ALARM_ADD_TEXT_LEN, "%02d:%02d:%02d", 
-             state->temp_alarm.hour, state->temp_alarm.minute, state->temp_alarm.second);
-    strcpy(state->repeat_text, state->temp_alarm.repeat ? "YES" : "NO");
-    
-    // 根据设置步骤高亮显示当前设置项
+    // 根据设置步骤高亮显示当前设置项（参考你的代码格式）
     switch (state->set_step) {
         case SET_STEP_HOUR: // 设置小时
-            OLED_Printf_Line(0, "  SET ALARM");
-            OLED_Printf_Line(1, " [%02d]:%02d:%02d", 
-                             state->temp_alarm.hour, state->temp_alarm.minute, state->temp_alarm.second);
-            OLED_Printf_Line(2, " Repeat: %s", state->repeat_text);
-            OLED_Printf_Line(3, " Set Hours");
+            OLED_Clear_Line(1);
+            OLED_Printf_Line(1, " [%02d]:%02d:%02d-loop:%s", 
+                             state->temp_alarm.hour, state->temp_alarm.minute, 
+                             state->temp_alarm.second, state->temp_alarm.repeat ? "YES" : "NO ");
+            OLED_Clear_Line(2);
+            OLED_Printf_Line(2, "   Set Hours");
             break;
             
         case SET_STEP_MINUTE: // 设置分钟
-            OLED_Printf_Line(0, "  SET ALARM");
-            OLED_Printf_Line(1, " %02d:[%02d]:%02d", 
-                             state->temp_alarm.hour, state->temp_alarm.minute, state->temp_alarm.second);
-            OLED_Printf_Line(2, " Repeat: %s", state->repeat_text);
-            OLED_Printf_Line(3, " Set Minutes");
+            OLED_Clear_Line(1);
+            OLED_Printf_Line(1, " %02d:[%02d]:%02d-loop:%s", 
+                             state->temp_alarm.hour, state->temp_alarm.minute, 
+                             state->temp_alarm.second, state->temp_alarm.repeat ? "YES" : "NO ");
+            OLED_Clear_Line(2);
+            OLED_Printf_Line(2, "  Set Minutes");
             break;
             
         case SET_STEP_SECOND: // 设置秒
-            OLED_Printf_Line(0, "  SET ALARM");
-            OLED_Printf_Line(1, " %02d:%02d:[%02d]", 
-                             state->temp_alarm.hour, state->temp_alarm.minute, state->temp_alarm.second);
-            OLED_Printf_Line(2, " Repeat: %s", state->repeat_text);
-            OLED_Printf_Line(3, " Set Seconds");
+            OLED_Clear_Line(1);
+            OLED_Printf_Line(1, " %02d:%02d:[%02d]-loop:%s", 
+                             state->temp_alarm.hour, state->temp_alarm.minute, 
+                             state->temp_alarm.second, state->temp_alarm.repeat ? "YES" : "NO ");
+            OLED_Clear_Line(2);
+            OLED_Printf_Line(2, "   Set Seconds");
             break;
             
         case SET_STEP_REPEAT: // 设置重复
-            OLED_Printf_Line(0, "  SET ALARM");
-            OLED_Printf_Line(1, " %02d:%02d:%02d", 
-                             state->temp_alarm.hour, state->temp_alarm.minute, state->temp_alarm.second);
-            OLED_Printf_Line(2, " Repeat: [%s]", state->repeat_text);
-            OLED_Printf_Line(3, " Set Repeat");
+            OLED_Clear_Line(1);
+            OLED_Printf_Line(1, " %02d:%02d:%02d-loop:[%s]", 
+                             state->temp_alarm.hour, state->temp_alarm.minute, 
+                             state->temp_alarm.second, state->temp_alarm.repeat ? "YES" : "NO ");
+            OLED_Clear_Line(2);
+            OLED_Printf_Line(2, "   Set Repeat");
             break;
     }
     
-    // 显示操作提示
-    OLED_Printf_Line(4, "KEY0:+ KEY1:- KEY3:Save");
-    OLED_Printf_Line(5, "KEY2:Next/Return");
+    // 显示标题和操作提示（参考你的代码格式）
+    OLED_Printf_Line(0, "  SET ALARM");
+    OLED_Printf_Line(3, "KEY0:+ KEY1:- KEY2:OK");
 }
 
 /**
