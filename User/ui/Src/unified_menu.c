@@ -460,6 +460,7 @@ menu_event_t menu_key_to_event(uint8_t key)
     menu_event_t event;
     memset(&event, 0, sizeof(menu_event_t));
     event.timestamp = xTaskGetTickCount();
+    BEEP_Buzz(5);
     printf("key press - > %d",key-1);
     switch (key) {
         case 1:

@@ -17,6 +17,7 @@
 #include "oled_print.h"
 #include "Key.h"
 #include <stdio.h>
+#include "beep.h"
 
 // ==================================
 // 菜单类型枚举
