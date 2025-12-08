@@ -9,7 +9,7 @@
 #include "alarm_core.h"
 #include <stdlib.h>
 #include <stdio.h>
-
+#include "rtc_date.h"
 // ==================================
 // 全局变量定义
 // ==================================
@@ -126,13 +126,41 @@ int Alarm_Update(uint8_t index, Alarm_TypeDef *alarm)
 
 /**
  * @brief 检查闹钟是否触发
- * @return 触发的闹钟数量
+ * @return 触发的闹钟索引，-1表示没有闹钟触发
  */
 int Alarm_Check(void)
 {
-    // 这里需要根据实际时间系统来检查闹钟
-    // 目前返回0表示没有闹钟触发
-    return 0;
+    // 读取当前RTC时间
+    MyRTC_ReadTime();
+    
+    // 遍历所有闹钟
+    for (uint8_t i = 0; i < g_alarm_count; i++) {
+        Alarm_TypeDef *alarm = &g_alarms[i];
+        
+        // 检查闹钟是否启用
+        if (!alarm->enabled) {
+            continue;
+        }
+        
+        // 检查时间是否匹配
+        if (alarm->hour == RTC_data.hours && 
+            alarm->minute == RTC_data.minutes && 
+            alarm->second == RTC_data.seconds) {
+            
+            printf("Alarm triggered! Index: %d, Time: %02d:%02d:%02d\r\n", 
+                   i, alarm->hour, alarm->minute, alarm->second);
+            
+            // 如果是单次闹钟，触发后自动禁用
+            if (!alarm->repeat) {
+                alarm->enabled = 0;
+                printf("Single alarm disabled after trigger\r\n");
+            }
+            
+            return (int)i;
+        }
+    }
+    
+    return -1; // 没有闹钟触发
 }
 
 /**

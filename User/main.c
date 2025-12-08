@@ -14,6 +14,7 @@
 #include "index.h"
 #include "MPU6050_hardware_i2c.h"
 #include "simple_pedometer.h"
+#include "alarm/Inc/alarm_alert.h"
 
 
 // 创建队列来存储按键事件
@@ -24,11 +25,13 @@ QueueHandle_t keyQueue;     // 按键队列
 static TaskHandle_t Menu_handle = NULL;
 static TaskHandle_t Key_handle = NULL;
 static TaskHandle_t Pedometer_handle = NULL;
+static TaskHandle_t Alarm_handle = NULL;
 
 /* 任务函数声明 */
 static void Menu_Main_Task(void *pvParameters);
 static void Key_Main_Task(void *pvParameters);
 static void Pedometer_Task(void *pvParameters);
+static void Alarm_Task(void *pvParameters);
 
 int main(void)
 {
@@ -98,6 +101,7 @@ int main(void)
                 (TaskHandle_t *)&Menu_handle);           /* 任务控制句柄 */
     xTaskCreate(Key_Main_Task, "KeyMain", 128, NULL, 4, &Key_handle);
     xTaskCreate(Pedometer_Task, "Pedometer", 128, NULL, 2, &Pedometer_handle);
+    xTaskCreate(Alarm_Task, "Alarm", 128, NULL, 3, &Alarm_handle);
     
     printf("creat task OK\n");
     
@@ -153,5 +157,51 @@ static void Pedometer_Task(void *pvParameters)
         
         // 每100ms执行一次
         vTaskDelay(delay_100ms);
+    }
+}
+
+/**
+ * @brief 闹钟任务
+ * @param pvParameters 任务参数
+ */
+static void Alarm_Task(void *pvParameters)
+{
+    printf("Alarm_Task started\n");
+    
+    // 初始化RTC
+    MyRTC_Init();
+    printf("RTC initialized for alarm checking\n");
+    
+    // 创建闹钟提醒页面
+    menu_item_t *alarm_alert_page = alarm_alert_init();
+    if (alarm_alert_page == NULL) {
+        printf("Alarm Alert page initialization failed\n");
+        vTaskDelete(NULL);
+        return;
+    }
+    
+    const TickType_t delay_1s = pdMS_TO_TICKS(1000); // 1秒检查一次
+    
+    while (1) {
+        // 检查闹钟是否触发
+        int triggered_alarm_index = Alarm_Check();
+        
+        if (triggered_alarm_index >= 0) {
+            printf("Alarm triggered! Index: %d\n", triggered_alarm_index);
+            
+            // 触发闹钟提醒
+            if (alarm_alert_trigger((uint8_t)triggered_alarm_index) == 0) {
+                // 直接进入闹钟提醒页面
+                printf("Switching to alarm alert page...\n");
+                menu_enter(alarm_alert_page);
+                
+                // 等待闹钟提醒页面处理完成
+                // 等待一段时间让用户有机会关闭闹钟
+                vTaskDelay(pdMS_TO_TICKS(500));
+            }
+        }
+        
+        // 每秒检查一次
+        vTaskDelay(delay_1s);
     }
 }

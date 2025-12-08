@@ -15,4 +15,6 @@ void Beep_Init(void);
  */
 void BEEP_Buzz( uint32_t duration_ms);
 
+void Beep_ON(void);
+void Beep_OFF(void);
 #endif
