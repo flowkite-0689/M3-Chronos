@@ -74,6 +74,7 @@ menu_item_t* menu_item_create(const char *name, menu_type_t type, menu_content_t
     if (item == NULL) {
         return NULL;
     }
+    printf("MALLOC: menu_item_create %s, size=%d bytes, addr=%p (menu_item_t structure allocation)\n", name, sizeof(menu_item_t), item);
     
     // 清零结构体
     memset(item, 0, sizeof(menu_item_t));
@@ -125,10 +126,14 @@ int8_t menu_add_child(menu_item_t *parent, menu_item_t *child)
     if (new_children == NULL) {
         return -2; // malloc failed
     }
+    printf("MALLOC: menu_add_child %s->%s, size=%d bytes, addr=%p (new children pointer array allocation)\n", 
+           parent->name, child->name, sizeof(menu_item_t *) * (parent->child_count + 1), new_children);
 
     // 拷贝旧指针（如果有）
     if (parent->child_count > 0 && parent->children != NULL) {
         memcpy(new_children, parent->children, sizeof(menu_item_t *) * parent->child_count);
+        printf("FREE: menu_add_child %s, old children pointer array addr=%p, size=%d bytes (old children array release)\n", 
+               parent->name, parent->children, sizeof(menu_item_t *) * parent->child_count);
         vPortFree(parent->children); // 释放旧数组
     }
 
@@ -219,6 +224,8 @@ int8_t menu_remove_child(menu_item_t *parent, menu_item_t *child)
     }
 
     // 释放旧数组，更新
+    printf("FREE: menu_remove_child %s, old children pointer array addr=%p, size=%d bytes (old children array release during removal)\n", 
+           parent->name, parent->children, sizeof(menu_item_t *) * parent->child_count);
     vPortFree(parent->children);
     parent->children = new_children;
     parent->child_count = new_count;
@@ -230,59 +237,97 @@ int8_t menu_remove_child(menu_item_t *parent, menu_item_t *child)
 }
 int8_t menu_item_delete(menu_item_t *item)
 {
-    if (item == NULL) return -1;
+    if (!item) return -1;
+    if (item == g_menu_sys.current_menu || item == g_menu_sys.root_menu) return -2;
 
-    // ❌ 禁止删除当前菜单或根菜单（除非先切换）
-    if (item == g_menu_sys.current_menu || item == g_menu_sys.root_menu) {
-        return -2;
-    }
-
-    // 🔐 获取互斥锁（防 display 访问）
+    // 🔐 加锁
     if (g_menu_sys.display_mutex) {
-        if (xSemaphoreTake(g_menu_sys.display_mutex, pdMS_TO_TICKS(100)) != pdTRUE) {
+        if (xSemaphoreTake(g_menu_sys.display_mutex, pdMS_TO_TICKS(100)) != pdTRUE)
             return -5;
-        }
     }
 
-    printf("[MENU] Deleting: %s (children: %d)\n", item->name, item->child_count);
+    printf("================================\n");
+    printf("Free heap before deletion: %d bytes\n", xPortGetFreeHeapSize());
+    printf("Deleting menu item: %s (addr=%p)\n", item->name, item);
+    printf("================================\n");
+    
+    // 📦 用栈模拟递归（避免爆栈）
+    #define MAX_STACK_DEPTH 32  // 增加深度
+    menu_item_t *stack[MAX_STACK_DEPTH];
+    int top = 0;
+    
+    // 安全检查：防止循环引用
+    for (int i = 0; i < top; i++) {
+        if (stack[i] == item) {
+            printf("ERROR: Circular reference detected!\n");
+            if (g_menu_sys.display_mutex) xSemaphoreGive(g_menu_sys.display_mutex);
+            return -6;
+        }
+    }
+    
+    stack[top++] = item;
 
-    // 🌲 递归删除所有子项（从后往前，避免索引变化影响）
-    for (int8_t i = item->child_count - 1; i >= 0; i--) {
-        menu_item_t *child = item->children[i];  // ✅ 直接取指针
-        if (child) {
-            // 先断链（从父节点移除）
-            if (child->parent == item) {
-                menu_remove_child(item, child); // 安全移除
+    while (top > 0) {
+        menu_item_t *cur = stack[--top];
+        
+        // 安全检查
+        if (!cur) continue;
+        
+        printf("Processing: %s (child_count=%d)\n", cur->name, cur->child_count);
+        
+        // 子项入栈（后进先出）
+        if (cur->child_count > 0 && cur->children != NULL) {
+            for (int8_t i = cur->child_count - 1; i >= 0; i--) {
+                if (cur->children[i] != NULL && top < MAX_STACK_DEPTH - 1) {
+                    // 安全检查：防止重复入栈
+                    int already_in_stack = 0;
+                    for (int j = 0; j < top; j++) {
+                        if (stack[j] == cur->children[i]) {
+                            already_in_stack = 1;
+                            break;
+                        }
+                    }
+                    if (!already_in_stack) {
+                        stack[top++] = cur->children[i];
+                    }
+                }
             }
-            // 再递归删除（此时 child->parent == NULL）
-            menu_item_delete(child);
         }
+        
+        // 释放当前项的资源
+        // 1. 释放子项指针数组
+        if (cur->children != NULL) {
+            printf("FREE: %s children array, addr=%p, size=%d bytes\n", 
+                   cur->name, cur->children, sizeof(menu_item_t *) * cur->child_count);
+            vPortFree(cur->children);
+            cur->children = NULL;
+            cur->child_count = 0;
+        }
+        
+        // 2. 释放上下文（如果有）
+        if (cur->context != NULL) {
+            printf("FREE: %s context, addr=%p\n", cur->name, cur->context);
+            vPortFree(cur->context);
+            cur->context = NULL;
+        }
+        
+        // 3. 释放菜单项结构本身
+        printf("FREE: %s menu_item, addr=%p, size=%d bytes\n", 
+               cur->name, cur, sizeof(menu_item_t));
+        vPortFree(cur);
+        
+        printf("Heap after freeing %s: %d bytes\n", cur->name, xPortGetFreeHeapSize());
     }
 
-    // 🧹 清理自身
-    if (item->children) {
-        vPortFree(item->children);
-        item->children = NULL;
-        item->child_count = 0;
-    }
-
-    // 🔔 可选回调（谨慎！）
-    // if (item->on_exit) item->on_exit(item);
-
-    // 🗑️ 释放自身
-    vPortFree(item);
-
-    // 📢 触发刷新
     g_menu_sys.need_refresh = 1;
-
-    if (g_menu_sys.display_mutex) {
-        xSemaphoreGive(g_menu_sys.display_mutex);
-    }
-
-    printf("[MENU] Deleted successfully.\n");
+    if (g_menu_sys.display_mutex) xSemaphoreGive(g_menu_sys.display_mutex);
+    
+    printf("================================\n");
+    printf("Free heap after deletion: %d bytes\n", xPortGetFreeHeapSize());
+    printf("================================\n");
+    
     return 0;
 }
-
 // ==================================
 // 菜单显示实现
 // ==================================
