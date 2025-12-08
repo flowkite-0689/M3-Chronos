@@ -169,7 +169,7 @@ void MyRTC_Init(void)
 	RCC_APB1PeriphClockCmd(RCC_APB1Periph_BKP, ENABLE);
     PWR_BackupAccessCmd(ENABLE);
 
-    if (BKP_ReadBackupRegister(BKP_DR1) != 0xA5A5) {
+    if (BKP_ReadBackupRegister(BKP_DR1) != 0xA5A6) {
         printf("First RTC config. Trying LSE...\n");
 
 //  用·LSI
@@ -211,7 +211,7 @@ void MyRTC_Init(void)
         RTC_WaitForLastTask();
 
         MyRTC_SetTime(); // 写入初始时间
-        BKP_WriteBackupRegister(BKP_DR1, 0xA5A5);
+        BKP_WriteBackupRegister(BKP_DR1, 0xA5A6);
         printf("RTC init with LSE OK!\n");
         return;
 
