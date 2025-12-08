@@ -44,7 +44,7 @@ int main(void)
     Key_Init();
     Beep_Init();
     
-    BEEP_Buzz(1000);
+    BEEP_Buzz(100);
    
     if(BEEP==1){
         printf("beep111111\n\n\n\nn\n\n\n\n\n");

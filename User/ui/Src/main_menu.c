@@ -13,6 +13,7 @@
 #include "TandH.h"
 #include "setting_menu.h"
 #include "Stopwatch.h"
+#include "StepCounter.h"
 
 #include "alarm_menu.h"
 #include "testlist_menu.h"
@@ -111,6 +112,16 @@ menu_item_t* main_menu_init(void)
                 if (alarm_menu != NULL)
                 {
                     menu_add_child(menu_item, alarm_menu);
+                }
+            }
+            
+            if (i == 5)
+            {
+                printf("StepCounter_init start init->\r\n");
+                menu_item_t* step_counter_page = StepCounter_init();
+                if (step_counter_page != NULL)
+                {
+                    menu_add_child(menu_item, step_counter_page);
                 }
             }
             
