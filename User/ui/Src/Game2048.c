@@ -580,13 +580,13 @@ void game2048_update_sensor_data(game2048_state_t *state)
         if (fabsf(state->last_angle_x) > fabsf(state->last_angle_y)) {
             // X轴为主要倾斜方向
             if (state->last_angle_x < -trigger_threshold) {
-                strcpy(state->direction_text, "up   ");
+                strcpy(state->direction_text, "right   ");
             } else if (state->last_angle_x > trigger_threshold) {
-                strcpy(state->direction_text, "down ");
+                strcpy(state->direction_text, "left ");
             } else if (state->last_angle_x < -trend_threshold) {
-                strcpy(state->direction_text, "up~   ");
+                strcpy(state->direction_text, "right~   ");
             } else if (state->last_angle_x > trend_threshold) {
-                strcpy(state->direction_text, "down~");
+                strcpy(state->direction_text, "left~");
             } else {
                 strcpy(state->direction_text, "flat ");
             }
@@ -594,13 +594,13 @@ void game2048_update_sensor_data(game2048_state_t *state)
         } else {
             // Y轴为主要倾斜方向
             if (state->last_angle_y > trigger_threshold) {
-                strcpy(state->direction_text, "right");
+                strcpy(state->direction_text, "down");
             } else if (state->last_angle_y < -trigger_threshold) {
-                strcpy(state->direction_text, "left  ");
+                strcpy(state->direction_text, "up  ");
             } else if (state->last_angle_y > trend_threshold) {
-                strcpy(state->direction_text, "right~");
+                strcpy(state->direction_text, "down~");
             } else if (state->last_angle_y < -trend_threshold) {
-                strcpy(state->direction_text, "left~  ");
+                strcpy(state->direction_text, "up~  ");
             } else {
                 strcpy(state->direction_text, "flat   ");
             }
@@ -624,20 +624,20 @@ int game2048_get_move_direction(game2048_state_t *state)
     static int need_reset = 0;
     int current_direction = -1;
     
-    const float trigger_threshold = 20.0f;
-    const float reset_threshold = 10.0f;
+    const float trigger_threshold = 25.0f;
+    const float reset_threshold = 15.0f;
     
     if (fabsf(state->last_angle_x) > fabsf(state->last_angle_y)) {
         if (state->last_angle_x < -trigger_threshold) {
-            current_direction = 2; // 上
+            current_direction = 1; // 上
         } else if (state->last_angle_x > trigger_threshold) {
-            current_direction = 3; // 下
+            current_direction = 0; // 下
         }
     } else {
         if (state->last_angle_y > trigger_threshold) {
-            current_direction = 1; // 右
+            current_direction = 3; // 右
         } else if (state->last_angle_y < -trigger_threshold) {
-            current_direction = 0; // 左
+            current_direction = 2; // 左
         }
     }
     

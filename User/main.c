@@ -160,6 +160,24 @@ static void Pedometer_Task(void *pvParameters)
             error_count++;
             if (error_count % 10 == 0) {  // 每10次错误打印一次
                 printf("MPU6050 read error: %d\n", mpu_status);
+                  	MPU_Init();
+printf("try init agin\n");
+	// ??MPU6050??ID
+	u8 device_id;
+	MPU_Read_Byte(MPU_ADDR, MPU_DEVICE_ID_REG, &device_id);
+	printf("MPU6050 Device ID: 0x%02X (Expected: 0x68)\r\n", device_id);
+
+	if (device_id != MPU_ADDR)
+	{
+		printf("MPU6050 Device ID Mismatch!\r\n");
+		OLED_Printf_Line(1, "MPU ID Error!");
+		OLED_Refresh();
+		Delay_ms(2000);
+	}
+	else
+	{
+		printf("MPU6050 Device ID OK\r\n");
+	}
             }
         }
         
@@ -179,7 +197,7 @@ static void Alarm_Task(void *pvParameters)
     // 初始化RTC
     MyRTC_Init();
     printf("RTC initialized for alarm checking\n");
-    RTC_SetTime_Manual(23,59,40);
+    // RTC_SetTime_Manual(23,59,40);
     const TickType_t delay_1s = pdMS_TO_TICKS(1000); // 1秒检查一次
     
     while (1) {
