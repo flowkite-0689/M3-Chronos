@@ -14,6 +14,7 @@
 #include "setting_menu.h"
 #include "Stopwatch.h"
 #include "StepCounter.h"
+#include "Game2048.h"
 
 #include "alarm_menu.h"
 #include "testlist_menu.h"
@@ -103,6 +104,26 @@ menu_item_t* main_menu_init(void)
                 if (Stopwatch_page != NULL)
                 {
                     menu_add_child(menu_item, Stopwatch_page);
+                }
+            }
+            
+            if (i == 3)
+            {
+                printf("Game2048_init start init->\r\n");
+                menu_item_t* game2048_page = game2048_init();
+                if (game2048_page != NULL)
+                {
+                    menu_add_child(menu_item, game2048_page);
+                }
+            }
+            
+            if (i == 3)
+            {
+                printf("Game2048_init start init->\r\n");
+                menu_item_t* game2048_page = game2048_init();
+                if (game2048_page != NULL)
+                {
+                    menu_add_child(menu_item, game2048_page);
                 }
             }
             

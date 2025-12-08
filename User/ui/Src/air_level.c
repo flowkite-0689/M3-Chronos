@@ -292,8 +292,8 @@ void air_level_update_data(air_level_state_t *state)
         
         // 平滑处理角度数据（避免跳动）
         const float smoothing_factor = 0.3f;
-        state->last_angle_x = state->last_angle_x * (1 - smoothing_factor) + state->angle_x * smoothing_factor;
-        state->last_angle_y = state->last_angle_y * (1 - smoothing_factor) + state->angle_y * smoothing_factor;
+        state->last_angle_x = state->last_angle_y * (1 - smoothing_factor) + state->angle_y * smoothing_factor;
+        state->last_angle_y = state->last_angle_x * (1 - smoothing_factor) + state->angle_x * smoothing_factor;
         
         // 确定方向文本
         const float trigger_threshold = 20.0f;
@@ -315,13 +315,13 @@ void air_level_update_data(air_level_state_t *state)
             snprintf(state->angle_text, 16, " %.1f^     ", state->last_angle_x);
         } else {
             // Y轴为主要倾斜方向
-            if (state->last_angle_y > trigger_threshold) {
+            if (state->last_angle_y < -trigger_threshold) {
                 strcpy(state->direction_text, "right");
-            } else if (state->last_angle_y < -trigger_threshold) {
+            } else if (state->last_angle_y > trigger_threshold) {
                 strcpy(state->direction_text, "left  ");
-            } else if (state->last_angle_y > trend_threshold) {
-                strcpy(state->direction_text, "right~");
             } else if (state->last_angle_y < -trend_threshold) {
+                strcpy(state->direction_text, "right~");
+            } else if (state->last_angle_y > trend_threshold) {
                 strcpy(state->direction_text, "left~  ");
             } else {
                 strcpy(state->direction_text, "flat   ");
