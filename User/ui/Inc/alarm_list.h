@@ -51,6 +51,10 @@ typedef struct alarm_list_state {
     uint8_t detail_selected;    // 详情页面选中项
     uint8_t operating;          // 是否正在操作
     
+    // 编辑控制
+    uint8_t editing_mode;       // 是否在编辑模式
+    uint8_t edit_step;          // 当前编辑步骤
+    
     // 临时数据
     Alarm_TypeDef temp_alarm;   // 临时闹钟数据（用于编辑）
     

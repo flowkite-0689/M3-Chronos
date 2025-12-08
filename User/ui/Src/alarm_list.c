@@ -16,7 +16,10 @@
 static void alarm_list_init_state(alarm_list_state_t *state);
 static void alarm_list_cleanup_state(alarm_list_state_t *state);
 static void alarm_list_process_list(alarm_list_state_t *state, uint8_t key_event);
+static void alarm_list_process_edit(alarm_list_state_t *state, uint8_t key_event);
 static void alarm_list_edit_time(alarm_list_state_t *state);
+static void alarm_list_exit_edit(alarm_list_state_t *state);
+static void alarm_list_display_edit(alarm_list_state_t *state);
 
 // ==================================
 // 页面初始化
@@ -61,7 +64,10 @@ void alarm_list_draw_function(void *context)
     }
     
     // 根据当前视图模式显示不同内容
-    if (state->in_detail_view) {
+    if (state->editing_mode) {
+        // 显示编辑视图
+        alarm_list_display_edit(state);
+    } else if (state->in_detail_view) {
         // 显示详情视图
         alarm_list_display_detail(state, state->selected);
     } else {
@@ -88,8 +94,14 @@ void alarm_list_draw_function(void *context)
 void alarm_list_key_handler(menu_item_t *item, uint8_t key_event)
 {
     alarm_list_state_t *state = (alarm_list_state_t *)item->content.custom.draw_context;
+    if (state == NULL) {
+        return;
+    }
     
-    if (state->in_detail_view) {
+    if (state->editing_mode) {
+        // 编辑模式下的按键处理
+        alarm_list_process_edit(state, key_event);
+    } else if (state->in_detail_view) {
         // 详情视图下的按键处理
         alarm_list_process_detail(state, key_event);
     } else {
@@ -547,147 +559,181 @@ static void alarm_list_edit_time(alarm_list_state_t *state)
     OLED_Clear();
     OLED_Printf_Line(0, "  EDIT ALARM ");
     
-    uint8_t editing = 1;
-    while (editing) {
-        // 显示设置界面（仿照alarm_add的显示格式）
-        switch (temp_state.set_step) {
-            case SET_STEP_HOUR: // 设置小时
-                OLED_Clear_Line(1);
-                OLED_Printf_Line(1, " [%02d]:%02d:%02d-loop:%s", 
-                                 temp_state.temp_alarm.hour, temp_state.temp_alarm.minute, 
-                                 temp_state.temp_alarm.second, temp_state.temp_alarm.repeat ? "YES" : "NO ");
-                OLED_Clear_Line(2);
-                OLED_Printf_Line(2, "   Set Hours");
-                break;
-                
-            case SET_STEP_MINUTE: // 设置分钟
-                OLED_Clear_Line(1);
-                OLED_Printf_Line(1, " %02d:[%02d]:%02d-loop:%s", 
-                                 temp_state.temp_alarm.hour, temp_state.temp_alarm.minute, 
-                                 temp_state.temp_alarm.second, temp_state.temp_alarm.repeat ? "YES" : "NO ");
-                OLED_Clear_Line(2);
-                OLED_Printf_Line(2, "  Set Minutes");
-                break;
-                
-            case SET_STEP_SECOND: // 设置秒
-                OLED_Clear_Line(1);
-                OLED_Printf_Line(1, " %02d:%02d:[%02d]-loop:%s", 
-                                 temp_state.temp_alarm.hour, temp_state.temp_alarm.minute, 
-                                 temp_state.temp_alarm.second, temp_state.temp_alarm.repeat ? "YES" : "NO ");
-                OLED_Clear_Line(2);
-                OLED_Printf_Line(2, "   Set Seconds");
-                break;
-                
-            case SET_STEP_REPEAT: // 设置重复
-                OLED_Clear_Line(1);
-                OLED_Printf_Line(1, " %02d:%02d:%02d-loop:[%s]", 
-                                 temp_state.temp_alarm.hour, temp_state.temp_alarm.minute, 
-                                 temp_state.temp_alarm.second, temp_state.temp_alarm.repeat ? "YES" : "NO ");
-                OLED_Clear_Line(2);
-                OLED_Printf_Line(2, "   Set Repeat");
-                break;
-        }
-        
-        // 显示操作提示
-        OLED_Printf_Line(3, "KEY0:+ KEY1:- KEY2:OK");
-        OLED_Refresh();
-        
-        // 等待按键输入
-        uint8_t key_pressed = 0;
-        while (!key_pressed) {
-            // 检查按键（简化实现，实际需要按键驱动）
-            // 这里使用延时等待，实际项目需要按键中断
-            vTaskDelay(pdMS_TO_TICKS(50));
-            // key_pressed = KEY_GetState(); // 实际需要调用按键检测函数
-            
-            // 为简化演示，这里使用虚拟按键检测
-            // 实际项目中需要替换为真实的按键检测
-            // 暂时使用延时退出，避免死循环
-            static uint32_t timeout = 0;
-            timeout++;
-            if (timeout > 200) { // 10秒超时
-                key_pressed = MENU_EVENT_KEY_SELECT; // 模拟确认键
-            }
-        }
-        
-        // 处理按键
-        switch (key_pressed) {
-            case MENU_EVENT_KEY_UP: // KEY0 - 增加
-                switch (temp_state.set_step) {
-                    case SET_STEP_HOUR: // 小时
-                        temp_state.temp_alarm.hour = (temp_state.temp_alarm.hour + 1) % 24;
-                        break;
-                    case SET_STEP_MINUTE: // 分钟
-                        temp_state.temp_alarm.minute = (temp_state.temp_alarm.minute + 1) % 60;
-                        break;
-                    case SET_STEP_SECOND: // 秒
-                        temp_state.temp_alarm.second = (temp_state.temp_alarm.second + 1) % 60;
-                        break;
-                    case SET_STEP_REPEAT: // 重复
-                        temp_state.temp_alarm.repeat = !temp_state.temp_alarm.repeat;
-                        break;
-                }
-                break;
-                
-            case MENU_EVENT_KEY_DOWN: // KEY1 - 减少
-                switch (temp_state.set_step) {
-                    case SET_STEP_HOUR: // 小时
-                        temp_state.temp_alarm.hour = (temp_state.temp_alarm.hour == 0) ? 23 : temp_state.temp_alarm.hour - 1;
-                        break;
-                    case SET_STEP_MINUTE: // 分钟
-                        temp_state.temp_alarm.minute = (temp_state.temp_alarm.minute == 0) ? 59 : temp_state.temp_alarm.minute - 1;
-                        break;
-                    case SET_STEP_SECOND: // 秒
-                        temp_state.temp_alarm.second = (temp_state.temp_alarm.second == 0) ? 59 : temp_state.temp_alarm.second - 1;
-                        break;
-                    case SET_STEP_REPEAT: // 重复
-                        temp_state.temp_alarm.repeat = !temp_state.temp_alarm.repeat;
-                        break;
-                }
-                break;
-                
-            case MENU_EVENT_KEY_ENTER: // KEY3 - 下一个设置项
-                temp_state.set_step++;
-                if (temp_state.set_step >= SET_STEP_COUNT) {
-                    temp_state.set_step = 0; // 循环回到第一项
-                }
-                break;
-                
-            case MENU_EVENT_KEY_SELECT: // KEY2 - 确认保存
-                editing = 0;
-                break;
-                
-            default:
-                break;
-        }
+    // 进入编辑模式
+    state->editing_mode = 1;
+    state->edit_step = SET_STEP_HOUR;
+    state->need_refresh = 1;
+}
+
+// ==================================
+// 编辑模式处理函数
+// ==================================
+
+/**
+ * @brief 退出编辑模式
+ * @param state 列表状态
+ */
+static void alarm_list_exit_edit(alarm_list_state_t *state)
+{
+    state->editing_mode = 0;
+    state->edit_step = 0;
+    state->need_refresh = 1;
+    
+    printf("Exit edit mode\r\n");
+}
+
+/**
+ * @brief 处理编辑模式按键
+ * @param state 列表状态
+ * @param key_event 按键事件
+ */
+static void alarm_list_process_edit(alarm_list_state_t *state, uint8_t key_event)
+{
+    if (state == NULL) {
+        return;
     }
     
-    // 保存新闹钟
-    if (Alarm_Add(&temp_state.temp_alarm) == 0) {
-        // 删除原闹钟
-        Alarm_Delete(state->selected);
-        
-        OLED_Clear();
-        OLED_Printf_Line(1, " ALARM UPDATED ");
-        OLED_Printf_Line(2, " SUCCESSFULLY! ");
-        OLED_Refresh();
-        vTaskDelay(pdMS_TO_TICKS(1000));
-        
-        // 如果删除后没有闹钟了，直接退出详情视图
-        if (Alarm_GetCount() == 0) {
-            alarm_list_exit_detail(state);
-        } else {
-            // 调整选中项
-            if (state->selected >= Alarm_GetCount()) {
-                state->selected = Alarm_GetCount() - 1;
+    printf("Alarm Edit: KEY%d pressed\r\n", key_event - 1);
+    
+    switch (key_event) {
+        case MENU_EVENT_KEY_UP:
+            // KEY0 - 增加当前设置项的值
+            switch (state->edit_step) {
+                case SET_STEP_HOUR: // 小时
+                    state->temp_alarm.hour = (state->temp_alarm.hour + 1) % 24;
+                    break;
+                case SET_STEP_MINUTE: // 分钟
+                    state->temp_alarm.minute = (state->temp_alarm.minute + 1) % 60;
+                    break;
+                case SET_STEP_SECOND: // 秒
+                    state->temp_alarm.second = (state->temp_alarm.second + 1) % 60;
+                    break;
+                case SET_STEP_REPEAT: // 重复
+                    state->temp_alarm.repeat = !state->temp_alarm.repeat;
+                    break;
             }
-            alarm_list_exit_detail(state);
-        }
-    } else {
-        OLED_Clear();
-        OLED_Printf_Line(1, " UPDATE FAILED ");
-        OLED_Refresh();
-        vTaskDelay(pdMS_TO_TICKS(1000));
-        state->need_refresh = 1;
+            state->need_refresh = 1;
+            break;
+            
+        case MENU_EVENT_KEY_DOWN:
+            // KEY1 - 减少当前设置项的值
+            switch (state->edit_step) {
+                case SET_STEP_HOUR: // 小时
+                    state->temp_alarm.hour = (state->temp_alarm.hour == 0) ? 23 : state->temp_alarm.hour - 1;
+                    break;
+                case SET_STEP_MINUTE: // 分钟
+                    state->temp_alarm.minute = (state->temp_alarm.minute == 0) ? 59 : state->temp_alarm.minute - 1;
+                    break;
+                case SET_STEP_SECOND: // 秒
+                    state->temp_alarm.second = (state->temp_alarm.second == 0) ? 59 : state->temp_alarm.second - 1;
+                    break;
+                case SET_STEP_REPEAT: // 重复
+                    state->temp_alarm.repeat = !state->temp_alarm.repeat;
+                    break;
+            }
+            state->need_refresh = 1;
+            break;
+            
+        case MENU_EVENT_KEY_SELECT:
+            // KEY2 - 确认保存
+            printf("Alarm Edit: Save alarm\r\n");
+            
+            // 保存新闹钟
+            if (Alarm_Add(&state->temp_alarm) == 0) {
+                // 删除原闹钟
+                Alarm_Delete(state->selected);
+                
+                OLED_Clear();
+                OLED_Printf_Line(1, " ALARM UPDATED ");
+                OLED_Printf_Line(2, " SUCCESSFULLY! ");
+                OLED_Refresh();
+                vTaskDelay(pdMS_TO_TICKS(1000));
+                
+                // 如果删除后没有闹钟了，直接退出详情视图
+                if (Alarm_GetCount() == 0) {
+                    alarm_list_exit_detail(state);
+                    alarm_list_exit_edit(state);
+                } else {
+                    // 调整选中项
+                    if (state->selected >= Alarm_GetCount()) {
+                        state->selected = Alarm_GetCount() - 1;
+                    }
+                    alarm_list_exit_detail(state);
+                    alarm_list_exit_edit(state);
+                }
+            } else {
+                OLED_Clear();
+                OLED_Printf_Line(1, " UPDATE FAILED ");
+                OLED_Refresh();
+                vTaskDelay(pdMS_TO_TICKS(1000));
+                state->need_refresh = 1;
+            }
+            break;
+            
+        case MENU_EVENT_KEY_ENTER:
+            // KEY3 - 下一个设置项
+            state->edit_step++;
+            if (state->edit_step >= SET_STEP_COUNT) {
+                state->edit_step = 0; // 循环回到第一项
+            }
+            state->need_refresh = 1;
+            break;
+            
+        default:
+            break;
     }
+}
+
+/**
+ * @brief 显示编辑界面
+ * @param state 列表状态
+ */
+static void alarm_list_display_edit(alarm_list_state_t *state)
+{
+    if (!state) {
+        return;
+    }
+    
+    // 根据设置步骤高亮显示当前设置项
+    switch (state->edit_step) {
+        case SET_STEP_HOUR: // 设置小时
+            OLED_Clear_Line(1);
+            OLED_Printf_Line(1, " [%02d]:%02d:%02d-loop:%s", 
+                             state->temp_alarm.hour, state->temp_alarm.minute, 
+                             state->temp_alarm.second, state->temp_alarm.repeat ? "YES" : "NO ");
+            OLED_Clear_Line(2);
+            OLED_Printf_Line(2, "   Set Hours");
+            break;
+            
+        case SET_STEP_MINUTE: // 设置分钟
+            OLED_Clear_Line(1);
+            OLED_Printf_Line(1, " %02d:[%02d]:%02d-loop:%s", 
+                             state->temp_alarm.hour, state->temp_alarm.minute, 
+                             state->temp_alarm.second, state->temp_alarm.repeat ? "YES" : "NO ");
+            OLED_Clear_Line(2);
+            OLED_Printf_Line(2, "  Set Minutes");
+            break;
+            
+        case SET_STEP_SECOND: // 设置秒
+            OLED_Clear_Line(1);
+            OLED_Printf_Line(1, " %02d:%02d:[%02d]-loop:%s", 
+                             state->temp_alarm.hour, state->temp_alarm.minute, 
+                             state->temp_alarm.second, state->temp_alarm.repeat ? "YES" : "NO ");
+            OLED_Clear_Line(2);
+            OLED_Printf_Line(2, "   Set Seconds");
+            break;
+            
+        case SET_STEP_REPEAT: // 设置重复
+            OLED_Clear_Line(1);
+            OLED_Printf_Line(1, " %02d:%02d:%02d-loop:[%s]", 
+                             state->temp_alarm.hour, state->temp_alarm.minute, 
+                             state->temp_alarm.second, state->temp_alarm.repeat ? "YES" : "NO ");
+            OLED_Clear_Line(2);
+            OLED_Printf_Line(2, "   Set Repeat");
+            break;
+    }
+    
+    // 显示标题和操作提示
+    OLED_Printf_Line(0, "  EDIT ALARM");
+    OLED_Printf_Line(3, "KEY0:+ KEY1:- KEY2:OK");
 }
