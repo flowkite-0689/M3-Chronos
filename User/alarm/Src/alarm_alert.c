@@ -62,7 +62,7 @@ menu_item_t *alarm_alert_init(void)
 void alarm_alert_on_enter(menu_item_t *item)
 {
     printf("Enter Alarm Alert page\r\n");
-    
+    Beep_Init();
     // 分配状态数据结构
     alarm_alert_state_t *state = &g_alarm_alert_state;
     
@@ -175,7 +175,9 @@ void alarm_alert_draw_function(void *context)
     if (current_time - state->last_beep_time >= pdMS_TO_TICKS(500)) {
         // 每500ms播放一次蜂鸣器
         if (state->isRaing) {
-            BEEP_Buzz(10);
+            Beep_ON();
+            vTaskDelay(30);
+            Beep_OFF();
         }
         state->last_beep_time = current_time;
         state->need_refresh = 1;

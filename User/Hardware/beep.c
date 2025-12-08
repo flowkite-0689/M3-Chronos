@@ -1,6 +1,6 @@
 #include "stm32f10x.h"                  // Device header
 #include "Delay.h"
-
+#include "debug.h"
 /**
   * 函    数：蜂鸣器初始化
   * 参    数：无
@@ -20,6 +20,7 @@ void Beep_Init(void)
 	
 	/*设置默认电平*/
 	GPIO_ResetBits(GPIOA, GPIO_Pin_4);							//PA4引脚输出高电平，蜂鸣器不响
+  printf("beep init OK\n\n\n\n\n");
 }
 
 /**
@@ -29,6 +30,7 @@ void Beep_Init(void)
   */
 void Beep_ON(void)
 {
+  printf("ON");
 	GPIO_SetBits(GPIOA, GPIO_Pin_4);		//PA4引脚输出高电平，蜂鸣器响
 }
 

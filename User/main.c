@@ -43,6 +43,12 @@ int main(void)
     OLED_Refresh();
     Key_Init();
     Beep_Init();
+    
+    BEEP_Buzz(1000);
+   
+    if(BEEP==1){
+        printf("beep111111\n\n\n\nn\n\n\n\n\n");
+    }
     // RTC_SetTime_Manual(15,22,0);
 
     	MPU_Init();
@@ -74,6 +80,8 @@ int main(void)
     OLED_Printf_Line(3, "wait for sys OK...");
     OLED_Refresh();
 
+
+    
     // 初始化菜单系统
     if (menu_system_init() != 0) {
         printf("Menu system initialization failed\r\n");
