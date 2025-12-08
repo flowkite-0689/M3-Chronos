@@ -69,7 +69,7 @@ menu_item_t* main_menu_init(void)
     // 为主菜单设置进入回调，用于在进入主菜单时绑定所有子菜单
     menu_item_set_callbacks(main_menu, 
                            main_menu_on_enter,  // 进入回调
-                           NULL,   // 退出回调
+                           main_menu_on_exit,   // 退出回调
                            NULL,               // 选中回调（不需要特殊处理）
                            NULL); // 按键处理
     
@@ -116,7 +116,7 @@ static void main_menu_bind_child_menu(menu_item_t *parent_item, int menu_index)
     if (parent_item == NULL || parent_item->context == NULL) {
         return;
     }
-    
+    printf("parent_item:%s",parent_item->name);
     menu_binding_status_t *binding_status = (menu_binding_status_t*)parent_item->context;
     
     // 检查是否已经绑定过
@@ -268,7 +268,11 @@ void main_menu_on_exit(menu_item_t* item)
             if (menu_index == MAIN_MENU_STOPWATCH || menu_index == MAIN_MENU_SETTINGS || 
                 menu_index == MAIN_MENU_TEMPHUMI || menu_index == MAIN_MENU_ALARM || 
                 menu_index == MAIN_MENU_TEST) {
-                main_menu_cleanup_child_menu(menu_item);
+                    
+                printf("-----------------------------------------\n\n%s will be delate\n",menu_item->children[0].name);
+            printf("menu_item->name:%s\n",menu_item->name);
+					// menu_item_delete(&(menu_item->children[0]));				
+            
             }
         }
     }

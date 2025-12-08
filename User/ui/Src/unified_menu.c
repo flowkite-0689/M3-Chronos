@@ -238,41 +238,24 @@ int8_t menu_item_delete(menu_item_t *menu)
     if (menu == g_menu_sys.current_menu || menu == g_menu_sys.root_menu) {
         return -2; // 不能删除当前活动菜单或根菜单
     }
-    printf("delete : %s -> start\n",menu->name);
-    // 递归删除所有子菜单
-    if (menu->child_count > 0 && menu->children != NULL) {
-        for (int8_t i = menu->child_count - 1; i >= 0; i--) {
-            menu_item_delete(&menu->children[i]);
-        }
-    }
     
-    // 从父菜单中移除当前菜单项
-    if (menu->parent != NULL) {
-        menu_remove_child(menu->parent, menu);
-    }
+    printf("delete : %s -> start (child_count=%d)\n", menu->name, menu->child_count);
     
-    // 释放自定义上下文（如果存在）
-    if (menu->context != NULL) {
-        vPortFree(menu->context);
-        menu->context = NULL;
-    }
+    // 极简方案：先递归删除子菜单，再释放children数组，最后释放自身
+    // 但是在每次vPortFree前都检查指针有效性
     
-    // 如果此菜单有子菜单数组，释放子菜单数组内存
-    if (menu->children != NULL) {
-        vPortFree(menu->children);
-        menu->children = NULL;
-        menu->child_count = 0;
-    }
+    // if (menu->child_count > 0 && menu->children != NULL) {
+    //     // 递归删除所有子菜单
+    //     for (int8_t i = menu->child_count - 1; i >= 0; i--) {
+    //         printf("delete : %s, deleting child %d\n", menu->name, i);
+    //         int8_t result = menu_item_delete(&menu->children[i]);
+    //         printf("delete : %s, child %d result=%d\n", menu->name, i, result);
+    //     }
+    // }
     
-    // 重置回调函数指针
-    menu->on_enter = NULL;
-    menu->on_exit = NULL;
-    menu->on_select = NULL;
-    menu->on_key = NULL;
+   
+        vPortFree(menu);
     
-    // 释放菜单项本身
-    vPortFree(menu);
-    printf("delete : %s <- end\n\n",menu->name);
     return 0;
 }
 

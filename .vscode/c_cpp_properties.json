@@ -12,7 +12,8 @@
                 "${workspaceFolder}/User/Hardware",
                 "${workspaceFolder}/User/FreeRTOS/portable/RVDS/ARM_CM3",
                 "${workspaceFolder}/User/Hardware/OLED",
-                "${workspaceFolder}/User/ui/Inc"
+                "${workspaceFolder}/User/ui/Inc",
+                "${workspaceFolder}/User/Hardware/MPU6050"
             ],
             "defines": [
                 "USE_STDPERIPH_DRIVER"

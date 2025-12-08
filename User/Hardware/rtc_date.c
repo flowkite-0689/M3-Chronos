@@ -165,7 +165,8 @@ void MyRTC_Init(void)
  
     printf("MyRTC init...\n");
     
-    RCC_APB1PeriphClockCmd(RCC_APB1Periph_PWR | RCC_APB1Periph_BKP, ENABLE);
+    RCC_APB1PeriphClockCmd(RCC_APB1Periph_PWR, ENABLE);
+	RCC_APB1PeriphClockCmd(RCC_APB1Periph_BKP, ENABLE);
     PWR_BackupAccessCmd(ENABLE);
 
     if (BKP_ReadBackupRegister(BKP_DR1) != 0xA5A5) {
@@ -174,6 +175,7 @@ void MyRTC_Init(void)
 //  用·LSI
         // goto USE_LSI;
         // ==== 尝试 LSE ====
+        BKP_DeInit();
         RCC_LSEConfig(RCC_LSE_ON);
         uint32_t timeout = 0;
         printf("RCC_LSEConfig(RCC_LSE_ON);");
@@ -192,6 +194,7 @@ void MyRTC_Init(void)
         printf("flag 1");
         RCC_RTCCLKConfig(RCC_RTCCLKSource_LSE);
         RCC_RTCCLKCmd(ENABLE);
+        
         printf(" RTC_WaitForSynchro");
         OLED_Printf_Line(1,"wait for Synchro...");
         OLED_Refresh_Dirty();
