@@ -1,4 +1,6 @@
 #include "alarm_menu.h"
+#include "alarm_add.h"
+#include "alarm_list.h"
 
 //+++++++++++++++++++++++=
 // 页面
@@ -47,7 +49,22 @@ menu_item_t *alarm_menu_init(void)
                                    alarm_menu_on_exit,   // 退出回调
                                    NULL,               // 选中回调（不需要特殊处理）
                                    NULL); // 按键处理
-
+ 
+  // 创建AlarmAdd页面
+  if(i==0){
+  menu_item_t *alarm_add_page = alarm_add_init();
+  if (alarm_add_page != NULL) {
+    menu_add_child(menu_item, alarm_add_page);
+  }
+}
+  // 创建AlarmList页面
+  if(i==1){
+  menu_item_t *alarm_list_page = alarm_list_init();
+  if (alarm_list_page != NULL) {
+    menu_add_child(menu_item, alarm_list_page);
+  }
+}
+  
                 menu_add_child(alarm_menu, menu_item);                     
     }
     
