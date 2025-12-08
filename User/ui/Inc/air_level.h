@@ -22,10 +22,24 @@
 #include <math.h>
 
 // ==================================
+// 宏定义
+// ==================================
+
+#define AIR_LEVEL_DIRECTION_TEXT_LEN 16
+#define AIR_LEVEL_ANGLE_TEXT_LEN     16
+
+// 显示模式
+typedef enum {
+    DISPLAY_MODE_DETAIL = 0,    // 详细模式
+    DISPLAY_MODE_SIMPLE = 1,    // 简洁模式
+    DISPLAY_MODE_MAX
+} air_display_mode_t;
+
+// ==================================
 // 水平仪状态结构体
 // ==================================
 
-typedef struct {
+typedef struct air_level_state {
     // 传感器数据
     float angle_x;           // X轴角度（前后倾斜）
     float angle_y;           // Y轴角度（左右倾斜）
@@ -34,71 +48,50 @@ typedef struct {
     
     // 显示控制
     uint8_t need_refresh;    // 需要刷新标志
-    uint32_t last_update;    // 上次更新时间
+    uint8_t sensor_ready;    // 传感器就绪状态
+    uint8_t display_mode;    // 显示模式
+    uint8_t _reserved;       // 保留字节，用于对齐
+    
+    TickType_t last_update;  // 上次更新时间
     
     // 信息显示
-    char direction_text[16]; // 方向文本
-    char angle_text[16];     // 角度文本
-    
-    // 传感器状态
-    uint8_t sensor_ready;    // 传感器就绪状态
+    char direction_text[AIR_LEVEL_DIRECTION_TEXT_LEN]; // 方向文本
+    char angle_text[AIR_LEVEL_ANGLE_TEXT_LEN];         // 角度文本
 } air_level_state_t;
 
 // ==================================
 // 函数声明
 // ==================================
 
-/**
- * @brief 初始化水平仪页面
- * @return 创建的水平仪页面指针
- */
+// 初始化与销毁函数
 menu_item_t* air_level_init(void);
+void air_level_deinit(menu_item_t* item);
 
-/**
- * @brief 水平仪自定义绘制函数
- * @param context 绘制上下文
- */
-void air_level_draw_function(void *context);
+// 回调函数
+void air_level_on_enter(menu_item_t* item);
+void air_level_on_exit(menu_item_t* item);
+void air_level_key_handler(menu_item_t* item, uint8_t key_event);
+void air_level_draw_function(void* context);
 
-/**
- * @brief 水平仪按键处理函数
- * @param item 菜单项
- * @param key_event 按键事件
- */
-void air_level_key_handler(menu_item_t *item, uint8_t key_event);
+// 数据处理函数
+void air_level_update_data(air_level_state_t* state);
+void calculate_tilt_angles(short ax, short ay, short az, 
+                          float* angle_x, float* angle_y);
 
-/**
- * @brief 水平仪页面进入回调
- * @param item 菜单项
- */
-void air_level_on_enter(menu_item_t *item);
+// 显示函数
+void air_level_display_info(air_level_state_t* state);
 
-/**
- * @brief 水平仪页面退出回调
- * @param item 菜单项
- */
-void air_level_on_exit(menu_item_t *item);
+// 工具函数（如果需要的话）
+static inline uint8_t air_level_is_sensor_ready(air_level_state_t* state)
+{
+    return (state != NULL) ? state->sensor_ready : 0;
+}
 
-/**
- * @brief 计算倾斜角度
- * @param ax X轴加速度
- * @param ay Y轴加速度
- * @param az Z轴加速度
- * @param angle_x 输出X轴角度
- * @param angle_y 输出Y轴角度
- */
-void calculate_tilt_angles(short ax, short ay, short az, float *angle_x, float *angle_y);
-
-/**
- * @brief 获取当前倾斜方向和角度
- * @param state 水平仪状态
- */
-void air_level_update_data(air_level_state_t *state);
-
-/**
- * @brief 显示水平仪信息
- * @param state 水平仪状态
- */
-void air_level_display_info(air_level_state_t *state);
+static inline void air_level_set_refresh(air_level_state_t* state, uint8_t refresh)
+{
+    if (state) {
+        state->need_refresh = refresh;
+    }
+}
 
 #endif // __AIR_LEVEL_H
