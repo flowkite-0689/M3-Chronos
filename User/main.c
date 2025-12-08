@@ -13,6 +13,7 @@
 #include "unified_menu.h"
 #include "index.h"
 #include "MPU6050_hardware_i2c.h"
+#include "simple_pedometer.h"
 
 
 // 创建队列来存储按键事件
@@ -22,10 +23,12 @@ QueueHandle_t keyQueue;     // 按键队列
 
 static TaskHandle_t Menu_handle = NULL;
 static TaskHandle_t Key_handle = NULL;
+static TaskHandle_t Pedometer_handle = NULL;
 
 /* 任务函数声明 */
 static void Menu_Main_Task(void *pvParameters);
 static void Key_Main_Task(void *pvParameters);
+static void Pedometer_Task(void *pvParameters);
 
 int main(void)
 {
@@ -57,6 +60,11 @@ int main(void)
 	{
 		printf("MPU6050 Device ID OK\r\n");
 	}
+	
+	// 初始化简单计步器
+	simple_pedometer_init();
+	printf("Simple pedometer initialized\r\n");
+	
     // 系统初始化成功
     printf("wait for sys OK...\n");
     OLED_Clear();
@@ -89,6 +97,7 @@ int main(void)
                 (UBaseType_t)3,                         /* 任务优先级 */
                 (TaskHandle_t *)&Menu_handle);           /* 任务控制句柄 */
     xTaskCreate(Key_Main_Task, "KeyMain", 128, NULL, 4, &Key_handle);
+    xTaskCreate(Pedometer_Task, "Pedometer", 128, NULL, 2, &Pedometer_handle);
     
     printf("creat task OK\n");
     
@@ -114,4 +123,35 @@ static void Key_Main_Task(void *pvParameters)
 {
     // 直接调用统一菜单框架的按键任务
     menu_key_task(pvParameters);
+}
+
+static void Pedometer_Task(void *pvParameters)
+{
+    printf("Pedometer_Task started\n");
+    
+    // 用于存储MPU6050数据
+    short ax, ay, az;
+    uint8_t mpu_status;
+    
+    const TickType_t delay_100ms = pdMS_TO_TICKS(100);
+    
+    while (1) {
+        // 读取MPU6050加速度数据
+        mpu_status = MPU_Get_Accelerometer(&ax, &ay, &az);
+        
+        if (mpu_status == 0) {  // 读取成功
+            // 更新计步器
+            simple_pedometer_update(ax, ay, az);
+        } else {
+            // 读取失败，打印错误信息
+            static uint8_t error_count = 0;
+            error_count++;
+            if (error_count % 10 == 0) {  // 每10次错误打印一次
+                printf("MPU6050 read error: %d\n", mpu_status);
+            }
+        }
+        
+        // 每100ms执行一次
+        vTaskDelay(delay_100ms);
+    }
 }

@@ -9,7 +9,7 @@
 #include "index.h"
 #include "main_menu.h"
 #include <string.h>
-
+#include "simple_pedometer.h"
 // ==================================
 // 全局变量定义
 // ==================================
@@ -186,6 +186,7 @@ static void index_display_time_info(void)
 
 static void index_display_status_info(void)
 {
+    g_index_state.step_count=simple_pedometer_get_steps();
     // 显示步数信息：第3行
     OLED_Printf_Line(3, "step : %lu", g_index_state.step_count);
     

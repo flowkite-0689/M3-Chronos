@@ -1,7 +1,7 @@
 #ifndef __SIMPLE_PEDOMETER_H
 #define __SIMPLE_PEDOMETER_H
 
-#include "sys.h"
+#include "hardware_def.h"
 
 // 全局步数变量
 extern unsigned long g_step_count;
