@@ -141,6 +141,10 @@ void game2048_key_handler(menu_item_t *item, uint8_t key_event)
                     state->need_refresh = 1;
                 } else {
                     printf("MPU6050 initialization failed\r\n");
+                    OLED_Printf_Line(1,"MPU605");
+                    OLED_Printf_Line(2,"nitialization failed");
+                    OLED_Printf_Line(3,"check uart");
+                    OLED_Refresh_Dirty();
                 }
             }
             break;
@@ -263,8 +267,7 @@ static void game2048_cleanup_sensor_data(game2048_state_t *state)
         return;
     }
     
-    // 如果有需要关闭的传感器，在这里执行
-    // 例如：MPU_Deinit();
+    
     
     printf("2048 Game sensor data cleaned up\r\n");
 }

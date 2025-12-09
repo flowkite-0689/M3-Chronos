@@ -164,8 +164,8 @@ static void TandH_display_info(void)
                        s_TandH_state.humi_int, s_TandH_state.humi_deci);
                        // 横向温度计（支持小数：25.5°C → 255）
     
-printf("Humi_int: %d, Humi_deci: %d\n", s_TandH_state.humi_int, s_TandH_state.humi_deci);
-                       printf("temp_int: %d, temp_deci: %d\n", s_TandH_state.temp_int, s_TandH_state.temp_deci);
+// printf("Humi_int: %d, Humi_deci: %d\n", s_TandH_state.humi_int, s_TandH_state.humi_deci);
+//                        printf("temp_int: %d, temp_deci: %d\n", s_TandH_state.temp_int, s_TandH_state.temp_deci);
     
     }
     else
@@ -179,9 +179,9 @@ printf("Humi_int: %d, Humi_deci: %d\n", s_TandH_state.humi_int, s_TandH_state.hu
     if (temp_tenth >s_TandH_state.last_date_T)
     {
       
-     if (temp_tenth-s_TandH_state.last_date_T>=10)
+     if (temp_tenth-s_TandH_state.last_date_T>=30)
      {
-        s_TandH_state.last_date_T+=100;
+        s_TandH_state.last_date_T+=70;
      }
      
         s_TandH_state.last_date_T++;
