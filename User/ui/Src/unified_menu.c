@@ -158,7 +158,7 @@ int8_t menu_add_child(menu_item_t *parent, menu_item_t *child)
     // 更新 parent
     parent->children = new_children;
     parent->child_count++;
-    child->parent = parent;  // ✅ 关键：建立反向链接
+    child->parent = parent; 
 
     return 0;
 }
@@ -204,7 +204,7 @@ int8_t menu_remove_child(menu_item_t *parent, menu_item_t *child)
     // 查找 child 指针在 children 数组中的位置（指针比较！）
     int8_t index = -1;
     for (uint8_t i = 0; i < parent->child_count; i++) {
-        if (parent->children[i] == child) {  // ✅ 正确：指针比较，无 &
+        if (parent->children[i] == child) {  //
             index = i;
             break;
         }
@@ -461,7 +461,7 @@ menu_event_t menu_key_to_event(uint8_t key)
     memset(&event, 0, sizeof(menu_event_t));
     event.timestamp = xTaskGetTickCount();
     BEEP_Buzz(5);
-    printf("key press - > %d",key-1);
+    printf("key press - > %d\n",key-1);
     switch (key) {
         case 1:
             event.type = MENU_EVENT_KEY_UP;
