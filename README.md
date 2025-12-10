@@ -173,8 +173,7 @@ menu_item_t **new_children = (menu_item_t **)pvPortMalloc(
 
 ## 许可证
 
-本项目采用MIT开源许可证，详见LICENSE文件。
-
+本项目不采用许可证
 ## 联系方式
 
 - **作者**: flowkite-0689
